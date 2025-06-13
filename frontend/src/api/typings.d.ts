@@ -40,7 +40,7 @@ declare namespace API {
     appType?: number;
     current?: number;
     id?: number;
-    notId?: string;
+    notId?: number;
     pageSize?: number;
     reviewMessage?: string;
     reviewStatus?: number;
@@ -70,7 +70,6 @@ declare namespace API {
     appIcon?: string;
     appName?: string;
     appType?: number;
-    content?: string;
     createTime?: string;
     id?: number;
     reviewMessage?: string;
@@ -78,7 +77,6 @@ declare namespace API {
     reviewTime?: string;
     reviewerId?: number;
     scoringStrategy?: number;
-    title?: string;
     updateTime?: string;
     user?: UserVO;
     userId?: number;
@@ -634,15 +632,12 @@ declare namespace API {
   };
 
   type ScoringResultUpdateRequest = {
-    appId?: number;
     id?: number;
-    notId?: number;
     resultDesc?: string;
     resultName?: string;
     resultPicture?: string;
     resultProp?: string[];
     resultScoreRange?: number;
-    userId?: number;
   };
 
   type ScoringResultVO = {

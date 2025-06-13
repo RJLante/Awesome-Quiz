@@ -1,5 +1,4 @@
 <template>
-  <PictureUploader biz="user_avatar" />
   <div id="app">
     <template v-if="route.path.startsWith('/user')">
       <router-view />
@@ -14,7 +13,6 @@
 import BasicLayout from "@/layouts/BasicLayout.vue";
 import { useRoute } from "vue-router";
 import { onMounted } from "vue";
-import PictureUploader from "@/components/PictureUploader.vue";
 
 const route = useRoute();
 

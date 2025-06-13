@@ -1,5 +1,5 @@
 <template>
-  <div class="no-auth-page">无权限</div>
+  <div id="noAuthPage">无权限</div>
 </template>
 
 <script setup lang="ts"></script>

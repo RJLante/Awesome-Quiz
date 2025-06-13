@@ -1,9 +1,5 @@
-<script setup lang="ts">
-import GlobalHeader from "@/components/GlobalHeader.vue";
-</script>
-
 <template>
-  <div id="basic-layout">
+  <div id="basicLayout">
     <a-layout style="height: 100vh">
       <a-layout-header class="header">
         <GlobalHeader />
@@ -11,34 +7,40 @@ import GlobalHeader from "@/components/GlobalHeader.vue";
       <a-layout-content class="content">
         <router-view />
       </a-layout-content>
-      <a-layout-footer class="footer" target="_blank">
-        <a href="https://github.com/RJLante/Awesome-Quiz"
-          >Awesome-Quiz by RJLante</a
-        >
+      <a-layout-footer class="footer">
+        <a href="https://github.com/RJLante/Awesome-Quiz" target="_blank">
+          Awesome Quiz
+        </a>
       </a-layout-footer>
     </a-layout>
   </div>
 </template>
 
+<script setup lang="ts">
+import GlobalHeader from "@/components/GlobalHeader.vue";
+</script>
+
 <style scoped>
-#basic-layout {
+#basicLayout {
 }
 
-#basic-layout .header {
+#basicLayout .header {
   margin-bottom: 16px;
   box-shadow: #eee 1px 1px 5px;
 }
 
-#basic-layout .content {
-  background: linear-gradient(to right, #fefefe, #fff);
-  margin-bottom: 28px;
+#basicLayout .content {
+  max-width: 1200px;
+  width: 100%;
+  box-sizing: border-box;
+  margin: 0 auto 28px;
   padding: 20px;
+  background: linear-gradient(to right, #fefefe, #fff);
 }
 
 .footer {
-  background: #efefef;
   padding: 16px;
   text-align: center;
-  text-decoration: none;
+  background: #efefef;
 }
 </style>

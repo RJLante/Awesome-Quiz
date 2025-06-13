@@ -2,16 +2,16 @@
   <div id="userLoginPage">
     <h2 style="margin-bottom: 16px">用户登录</h2>
     <a-form
-      style="max-width: 480px; margin: 0 auto"
+      :model="form"
+      :style="{ width: '480px', margin: '0 auto' }"
       label-align="left"
       auto-label-width
-      :model="form"
       @submit="handleSubmit"
     >
       <a-form-item field="userAccount" label="账号">
         <a-input v-model="form.userAccount" placeholder="请输入账号" />
       </a-form-item>
-      <a-form-item field="userPassword" tooltip="密码不少于 8 位" label="密码">
+      <a-form-item field="userPassword" tooltip="密码不小于 8 位" label="密码">
         <a-input-password
           v-model="form.userPassword"
           placeholder="请输入密码"
@@ -21,9 +21,9 @@
         <div
           style="
             display: flex;
-            justify-content: space-between;
-            align-items: center;
             width: 100%;
+            align-items: center;
+            justify-content: space-between;
           "
         >
           <a-button type="primary" html-type="submit" style="width: 120px">
@@ -38,30 +38,25 @@
 
 <script setup lang="ts">
 import { reactive } from "vue";
+import API from "@/api";
+import { userLoginUsingPost } from "@/api/userController";
+import { useLoginUserStore } from "@/store/userStore";
 import message from "@arco-design/web-vue/es/message";
 import { useRouter } from "vue-router";
-import { useLoginUserStore } from "../../../store/userStore";
-import { userLoginUsingPost } from "@/api/userController";
-import API from "@/api";
 
-/**
- * 表单信息
- */
+const loginUserStore = useLoginUserStore();
+const router = useRouter();
+
 const form = reactive({
   userAccount: "",
   userPassword: "",
 } as API.UserLoginRequest);
 
-const router = useRouter();
-const loginUserStore = useLoginUserStore();
-
 /**
- * 提交表单
- * @param data
+ * 提交
  */
 const handleSubmit = async () => {
   const res = await userLoginUsingPost(form);
-  // 登录成功，跳转到主页
   if (res.data.code === 0) {
     await loginUserStore.fetchLoginUser();
     message.success("登录成功");

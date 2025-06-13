@@ -1,10 +1,9 @@
 <template>
-  <a-row class="grid-demo" align="center" :wrap="false">
+  <a-row id="globalHeader" align="center" :wrap="false">
     <a-col flex="auto">
       <a-menu
         mode="horizontal"
-        theme="light"
-        :selectedKeys="selectedKeys"
+        :selected-keys="selectedKeys"
         @menu-item-click="doMenuClick"
       >
         <a-menu-item
@@ -12,12 +11,12 @@
           :style="{ padding: 0, marginRight: '38px' }"
           disabled
         >
-          <div class="title-bar">
+          <div class="titleBar">
             <img class="logo" src="../assets/test.png" />
-            <div class="title">Awesome Quiz</div>
+            <div class="title">Awesome-Quiz</div>
           </div>
         </a-menu-item>
-        <a-menu-item v-for="item in visableRoutes" :key="item.path">
+        <a-menu-item v-for="item in visibleRoutes" :key="item.path">
           {{ item.name }}
         </a-menu-item>
       </a-menu>
@@ -37,20 +36,21 @@
 import { routes } from "@/router/routes";
 import { useRouter } from "vue-router";
 import { computed, ref } from "vue";
-import { useLoginUserStore } from "../../store/userStore";
+import { useLoginUserStore } from "@/store/userStore";
 import checkAccess from "@/access/checkAccess";
 
 const loginUserStore = useLoginUserStore();
+
 const router = useRouter();
 // 当前选中的菜单项
 const selectedKeys = ref(["/"]);
 // 路由跳转时，自动更新选中的菜单项
-router.afterEach((to) => {
+router.afterEach((to, from, failure) => {
   selectedKeys.value = [to.path];
 });
 
 // 展示在菜单栏的路由数组
-const visableRoutes = computed(() => {
+const visibleRoutes = computed(() => {
   return routes.filter((item) => {
     if (item.meta?.hideInMenu) {
       return false;
@@ -72,17 +72,17 @@ const doMenuClick = (key: string) => {
 </script>
 
 <style scoped>
-#global-header {
+#globalHeader {
 }
 
-.title-bar {
+.titleBar {
   display: flex;
   align-items: center;
 }
 
 .title {
-  color: black;
   margin-left: 16px;
+  color: black;
 }
 
 .logo {

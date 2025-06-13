@@ -81,7 +81,11 @@ if (props.value) {
 const customRequest = async (option: any) => {
   const { onError, onSuccess, fileItem } = option;
 
-  const res = await uploadFileUsingPost({ biz: props.biz }, {}, fileItem.file);
+  const res: any = await uploadFileUsingPost(
+    { biz: props.biz },
+    {},
+    fileItem.file
+  );
   if (res.data.code === 0 && res.data.data) {
     const url = res.data.data;
     file.value = {
