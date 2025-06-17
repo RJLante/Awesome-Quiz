@@ -12,9 +12,19 @@
         {{ appId }}
       </a-form-item>
       <a-form-item label="题目列表" :content-flex="false" :merge-props="false">
-        <a-button @click="addQuestion(questionContent.length)">
-          底部添加题目
-        </a-button>
+        <a-space size="medium">
+          <a-button @click="addQuestion(questionContent.length)">
+            底部添加题目
+          </a-button>
+          <AiGenerateQuesitonDrawer
+            :appId="appId"
+            :onSuccess="onAiGenerateSuccess"
+            :onSSESuccess="onAiGenerateSuccessSSE"
+            :onSSEClose="onSSEClose"
+            :onSSEStart="onSSEStart"
+            :onSSEError="onSSEError"
+          />
+        </a-space>
         <!-- 遍历每道题目 -->
         <div v-for="(question, index) in questionContent" :key="index">
           <a-space size="large">
@@ -103,6 +113,7 @@ import {
   listQuestionVoByPageUsingPost,
 } from "@/api/questionController";
 import message from "@arco-design/web-vue/es/message";
+import AiGenerateQuesitonDrawer from "@/views/add/components/AiGenerateQuesitonDrawer.vue";
 
 interface Props {
   appId: string;
@@ -229,4 +240,34 @@ const handleSubmit = async () => {
     message.error("操作失败，" + res.data.message);
   }
 };
+
+/**
+ * AI 生成题目成功后执行
+ */
+const onAiGenerateSuccess = (result: API.QuestionContentDTO[]) => {
+  message.success(`生成题目成功，生成了 ${result.legnth} 道题目`);
+  questionContent.value = [...questionContent.value, ...result];
+};
+
+/**
+ * AI 生成题目成功后执行（SSE）
+ */
+const onAiGenerateSuccessSSE = (result: API.QuestionContentDTO) => {
+  questionContent.value = [...questionContent.value, result];
+};
+const onSSEStart = (event: any) => {
+  message.success(`正在生成题目，请稍后...`);
+};
+const onSSEClose = (event: any) => {
+  message.success(`生成完毕`);
+};
+const onSSEError = (event: any) => {
+  message.error(`生成题目失败，${event.data}`);
+};
 </script>
+
+<style scoped>
+.question-item {
+  margin-bottom: 20px;
+}
+</style>

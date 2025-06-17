@@ -1,4 +1,10 @@
 declare namespace API {
+  type AiGenerateQuestionRequest = {
+    appId?: number;
+    optionNumber?: number;
+    questionNumber?: number;
+  };
+
   type App = {
     appDesc?: string;
     appIcon?: string;
@@ -40,7 +46,7 @@ declare namespace API {
     appType?: number;
     current?: number;
     id?: number;
-    notId?: number;
+    notId?: string;
     pageSize?: number;
     reviewMessage?: string;
     reviewStatus?: number;
@@ -70,6 +76,7 @@ declare namespace API {
     appIcon?: string;
     appName?: string;
     appType?: number;
+    content?: string;
     createTime?: string;
     id?: number;
     reviewMessage?: string;
@@ -77,6 +84,7 @@ declare namespace API {
     reviewTime?: string;
     reviewerId?: number;
     scoringStrategy?: number;
+    title?: string;
     updateTime?: string;
     user?: UserVO;
     userId?: number;
@@ -97,6 +105,12 @@ declare namespace API {
   type BaseResponseInt_ = {
     code?: number;
     data?: number;
+    message?: string;
+  };
+
+  type BaseResponseListQuestionContentDTO_ = {
+    code?: number;
+    data?: QuestionContentDTO[];
     message?: string;
   };
 
@@ -632,12 +646,15 @@ declare namespace API {
   };
 
   type ScoringResultUpdateRequest = {
+    appId?: number;
     id?: number;
+    notId?: number;
     resultDesc?: string;
     resultName?: string;
     resultPicture?: string;
     resultProp?: string[];
     resultScoreRange?: number;
+    userId?: number;
   };
 
   type ScoringResultVO = {
