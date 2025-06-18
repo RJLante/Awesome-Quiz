@@ -29,7 +29,7 @@
             <a-button type="primary" :href="`/answer/do/${id}`"
               >开始答题
             </a-button>
-            <a-button>分享应用</a-button>
+            <a-button @click="doShare">分享应用</a-button>
             <a-button v-if="isMy" :href="`/add/question/${id}`"
               >设置题目
             </a-button>
@@ -44,6 +44,7 @@
         </a-col>
       </a-row>
     </a-card>
+    <ShareModel :link="shareLink" title="应用分享" ref="shareModelRef" />
   </div>
 </template>
 
@@ -56,6 +57,7 @@ import { useRouter } from "vue-router";
 import { dayjs } from "@arco-design/web-vue/es/_utils/date";
 import { useLoginUserStore } from "@/store/userStore";
 import { APP_SCORING_STRATEGY_MAP, APP_TYPE_MAP } from "../../constant/app";
+import ShareModel from "@/components/ShareModel.vue";
 
 interface Props {
   id: string;
@@ -68,6 +70,17 @@ const props = withDefaults(defineProps<Props>(), {
 });
 
 const router = useRouter();
+
+const shareModelRef = ref();
+
+const shareLink = `${window.location.protocol}//${window.location.host}/app/detail/${props.id}`;
+const doShare = (e: Event) => {
+  if (shareModelRef.value) {
+    shareModelRef.value.openModel();
+  }
+  // 停止冒泡，防止跳转到详情页
+  e.stopPropagation();
+};
 
 const data = ref<API.AppVO>({});
 

@@ -1,5 +1,6 @@
 <template>
   <div id="homePage">
+    <ShareModel />
     <div class="searchBar">
       <a-input-search
         :style="{ width: '320px' }"
@@ -35,6 +36,7 @@ import API from "@/api";
 import { listAppVoByPageUsingPost } from "@/api/appController";
 import message from "@arco-design/web-vue/es/message";
 import { REVIEW_STATUS_ENUM } from "@/constant/app";
+import ShareModel from "@/components/ShareModel.vue";
 
 // 初始化搜索条件（不应该被修改）
 const initSearchParams = {

@@ -111,5 +111,5 @@ knife4j:
           - com.rd.backend.controller
 # AI 配置
 ai:
-  apiKey: your_api_key
+  apiKey: your-api-key
 
