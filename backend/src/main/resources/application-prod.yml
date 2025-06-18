@@ -32,7 +32,7 @@ spring:
         # 2. 明确指定驱动类
         driver-class-name: com.mysql.cj.jdbc.Driver
         # 3. 使用你的数据库【内网地址】替换 YOUR_PROD_DB_INTERNAL_HOST
-        jdbc-url: jdbc:mysql://YOUR_PROD_DB_INTERNAL_HOST:3306/research?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf-8
+        jdbc-url: jdbc:mysql://10.17.109.168:3306/research?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf-8
         # 4. 从环境变量读取用户名和密码
         username: ${DB_USERNAME}
         password: ${DB_PASSWORD}
