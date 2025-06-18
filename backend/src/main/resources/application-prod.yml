@@ -1,31 +1,62 @@
 # 生产环境配置文件 (application-prod.yml)
 
 spring:
-  # 不再使用文件导入！
-  # config:
-  #   import: optional:file:./config/application-prod-secret.yml
-
   # 开启分布式 Session
   session:
     store-type: redis
 
-  # 数据库配置 (用户名和密码从环境变量读取)
-  datasource:
-    url: jdbc:mysql://prod-db-host:3306/research?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf-8
-    username: ${DB_USERNAME} # 引用环境变量
-    password: ${DB_PASSWORD} # 引用环境变量
+  # ======================================================================
+  # 关键修改：移除顶层的 spring.datasource，因为它和 shardingsphere 冲突
+  # Spring Boot 在检测到 ShardingSphere 时，会期望由 ShardingSphere 来全权管理数据源。
+  # 保留此部分会导致 Spring 尝试创建两个数据源，从而引发混乱和错误。
+  # ======================================================================
+  # datasource:
+  #   url: jdbc:mysql://prod-db-host:3306/research?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf-8
+  #   username: ${DB_USERNAME}
+  #   password: ${DB_PASSWORD}
 
-  # Redis 配置 (密码从环境变量读取)
+  # Redis 配置
   redis:
+    # 假设你的 Redis 内网地址是 prod-redis-host
     host: prod-redis-host
+    # 如果 Redis 没有密码，请删除 password 这一行
+    # password: ${REDIS_PASSWORD}
 
-  # ShardingSphere 数据源配置 (用户名和密码从环境变量读取)
+  # ShardingSphere 数据源配置 (这是唯一需要配置数据源的地方)
   shardingsphere:
     datasource:
+      # 'names' 已经在 application.yml 中定义，这里是具体实现
       research:
-        jdbc-url: jdbc:mysql://prod-db-host:3306/research?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf-8
-        username: ${DB_USERNAME} # 引用环境变量
-        password: ${DB_PASSWORD} # 引用环境变量
+        # 1. 明确指定数据源类型为 HikariCP
+        type: com.zaxxer.hikari.HikariDataSource
+        # 2. 明确指定驱动类
+        driver-class-name: com.mysql.cj.jdbc.Driver
+        # 3. 使用你的数据库【内网地址】替换 YOUR_PROD_DB_INTERNAL_HOST
+        jdbc-url: jdbc:mysql://YOUR_PROD_DB_INTERNAL_HOST:3306/research?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf-8
+        # 4. 从环境变量读取用户名和密码
+        username: ${DB_USERNAME}
+        password: ${DB_PASSWORD}
+        # 5. HikariCP 的一些推荐生产配置
+        hikari:
+          connection-timeout: 30000
+          maximum-pool-size: 10
+          minimum-idle: 5
+          idle-timeout: 600000
+          max-lifetime: 1800000
 
+# mybatis-plus 配置
+mybatis-plus:
+  configuration:
+    # 生产环境关闭 mybatis-plus 的日志
+    log-impl: ''
+
+
+# AI 配置
 ai:
   apiKey: ${AI_API_KEY}
+
+
+# 服务器端口配置
+server:
+  # 监听由平台注入的 PORT 环境变量，如果没有则备用 8101
+  port: ${PORT:8101}
