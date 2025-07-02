@@ -60,7 +60,7 @@ export async function generateUserAnswerIdUsingGet(options?: {
 /** getUserAnswerVOById GET /api/userAnswer/get/vo */
 export async function getUserAnswerVoByIdUsingGet(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
-  params: API.getUserAnswerVOByIdUsingGETParams,
+  params: API.getUserAnswerVOByIdUsingGET1Params,
   options?: { [key: string]: any }
 ) {
   return request<API.BaseResponseUserAnswerVO_>("/api/userAnswer/get/vo", {

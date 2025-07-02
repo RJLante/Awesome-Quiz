@@ -3,6 +3,8 @@
     <ShareModel />
     <div class="searchBar">
       <a-input-search
+        v-model="searchParams.searchText"
+        @search="loadData"
         :style="{ width: '320px' }"
         placeholder="快速发现答题应用"
         button-text="搜索"

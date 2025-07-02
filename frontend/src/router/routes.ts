@@ -18,6 +18,7 @@ import DoAnswerPage from "@/views/answer/DoAnswerPage.vue";
 import AnswerResultPage from "@/views/answer/AnswerResultPage.vue";
 import MyAnswerPage from "@/views/answer/MyAnswerPage.vue";
 import AppStatisticPage from "@/views/statistic/AppStatisticPage.vue";
+import UserInfoPage from "@/views/user/UserInfoPage.vue";
 
 export const routes: Array<RouteRecordRaw> = [
   {
@@ -167,11 +168,19 @@ export const routes: Array<RouteRecordRaw> = [
         path: "/user/login",
         name: "用户登录",
         component: UserLoginPage,
+        meta: { hideInMenu: true },
       },
       {
         path: "/user/register",
         name: "用户注册",
         component: UserRegisterPage,
+        meta: { hideInMenu: true },
+      },
+      {
+        path: "/user/info",
+        name: "个人中心",
+        component: UserInfoPage,
+        meta: { requiresAuth: true, hideInMenu: true },
       },
     ],
     meta: {

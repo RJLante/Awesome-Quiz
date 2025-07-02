@@ -3,7 +3,7 @@
 import request from "@/request";
 
 /** addUser POST /api/user/add */
-export async function addUserUsingPost(
+export async function addUserUsingPost1(
   body: API.UserAddRequest,
   options?: { [key: string]: any }
 ) {
@@ -18,7 +18,7 @@ export async function addUserUsingPost(
 }
 
 /** deleteUser POST /api/user/delete */
-export async function deleteUserUsingPost(
+export async function deleteUserUsingPost1(
   body: API.DeleteRequest,
   options?: { [key: string]: any }
 ) {
@@ -35,7 +35,7 @@ export async function deleteUserUsingPost(
 /** getUserById GET /api/user/get */
 export async function getUserByIdUsingGet(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
-  params: API.getUserByIdUsingGETParams,
+  params: API.getUserByIdUsingGET1Params,
   options?: { [key: string]: any }
 ) {
   return request<API.BaseResponseUser_>("/api/user/get", {
@@ -58,7 +58,7 @@ export async function getLoginUserUsingGet(options?: { [key: string]: any }) {
 /** getUserVOById GET /api/user/get/vo */
 export async function getUserVoByIdUsingGet(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
-  params: API.getUserVOByIdUsingGETParams,
+  params: API.getUserVOByIdUsingGET1Params,
   options?: { [key: string]: any }
 ) {
   return request<API.BaseResponseUserVO_>("/api/user/get/vo", {

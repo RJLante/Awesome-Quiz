@@ -49,12 +49,12 @@
 <script setup lang="ts">
 import { reactive } from "vue";
 import API from "@/api";
-import { userRegisterUsingPost } from "@/api/userController";
 import message from "@arco-design/web-vue/es/message";
 import { useRouter } from "vue-router";
+import { useAuthStore } from "@/store/auth";
 
 const router = useRouter();
-
+const authStore = useAuthStore();
 const form = reactive({
   userAccount: "",
   userPassword: "",
@@ -65,15 +65,15 @@ const form = reactive({
  * 提交
  */
 const handleSubmit = async () => {
-  const res = await userRegisterUsingPost(form);
-  if (res.data.code === 0) {
+  const ok = await authStore.register(form);
+  if (ok) {
     message.success("注册成功");
     router.push({
       path: "/user/login",
       replace: true,
     });
   } else {
-    message.error("注册失败，" + res.data.message);
+    message.error("注册失败");
   }
 };
 </script>

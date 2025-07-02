@@ -50,11 +50,10 @@ public class ScoringResultController {
      * 创建评分结果
      *
      * @param scoringResultAddRequest
-     * @param request
      * @return
      */
     @PostMapping("/add")
-    public BaseResponse<Long> addScoringResult(@RequestBody ScoringResultAddRequest scoringResultAddRequest, HttpServletRequest request) {
+    public BaseResponse<Long> addScoringResult(@RequestBody ScoringResultAddRequest scoringResultAddRequest) {
         ThrowUtils.throwIf(scoringResultAddRequest == null, ErrorCode.PARAMS_ERROR);
         // 在此处将实体类和 DTO 进行转换
         ScoringResult scoringResult = new ScoringResult();
@@ -65,7 +64,7 @@ public class ScoringResultController {
         // 数据校验
         scoringResultService.validScoringResult(scoringResult, true);
         // 填充默认值
-        User loginUser = userService.getLoginUser(request);
+        User loginUser = userService.getLoginUser();
         scoringResult.setUserId(loginUser.getId());
         // 写入数据库
         boolean result = scoringResultService.save(scoringResult);
@@ -87,7 +86,7 @@ public class ScoringResultController {
         if (deleteRequest == null || deleteRequest.getId() <= 0) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-        User user = userService.getLoginUser(request);
+        User user = userService.getLoginUser();
         long id = deleteRequest.getId();
         // 判断是否存在
         ScoringResult oldScoringResult = scoringResultService.getById(id);
@@ -198,7 +197,7 @@ public class ScoringResultController {
                                                                  HttpServletRequest request) {
         ThrowUtils.throwIf(scoringResultQueryRequest == null, ErrorCode.PARAMS_ERROR);
         // 补充查询条件，只查询当前登录用户的数据
-        User loginUser = userService.getLoginUser(request);
+        User loginUser = userService.getLoginUser();
         scoringResultQueryRequest.setUserId(loginUser.getId());
         long current = scoringResultQueryRequest.getCurrent();
         long size = scoringResultQueryRequest.getPageSize();
@@ -215,11 +214,10 @@ public class ScoringResultController {
      * 编辑评分结果（给用户使用）
      *
      * @param scoringResultEditRequest
-     * @param request
      * @return
      */
     @PostMapping("/edit")
-    public BaseResponse<Boolean> editScoringResult(@RequestBody ScoringResultEditRequest scoringResultEditRequest, HttpServletRequest request) {
+    public BaseResponse<Boolean> editScoringResult(@RequestBody ScoringResultEditRequest scoringResultEditRequest) {
         if (scoringResultEditRequest == null || scoringResultEditRequest.getId() <= 0) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
@@ -231,7 +229,7 @@ public class ScoringResultController {
 
         // 数据校验
         scoringResultService.validScoringResult(scoringResult, false);
-        User loginUser = userService.getLoginUser(request);
+        User loginUser = userService.getLoginUser();
         // 判断是否存在
         long id = scoringResultEditRequest.getId();
         ScoringResult oldScoringResult = scoringResultService.getById(id);

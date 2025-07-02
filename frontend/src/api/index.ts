@@ -4,6 +4,7 @@
 // API 唯一标识：
 import * as appController from "./appController";
 import * as appStatisticController from "./appStatisticController";
+import * as authController from "./authController";
 import * as fileController from "./fileController";
 import * as postController from "./postController";
 import * as postFavourController from "./postFavourController";
@@ -15,6 +16,7 @@ import * as userAnswerController from "./userAnswerController";
 export default {
   appController,
   appStatisticController,
+  authController,
   fileController,
   postController,
   postFavourController,

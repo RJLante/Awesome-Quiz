@@ -47,11 +47,10 @@ public class AppController {
      * 创建应用
      *
      * @param appAddRequest
-     * @param request
      * @return
      */
     @PostMapping("/add")
-    public BaseResponse<Long> addApp(@RequestBody AppAddRequest appAddRequest, HttpServletRequest request) {
+    public BaseResponse<Long> addApp(@RequestBody AppAddRequest appAddRequest) {
         ThrowUtils.throwIf(appAddRequest == null, ErrorCode.PARAMS_ERROR);
         // 在此处将实体类和 DTO 进行转换
         App app = new App();
@@ -59,7 +58,7 @@ public class AppController {
         // 数据校验
         appService.validApp(app, true);
         // 填充默认值
-        User loginUser = userService.getLoginUser(request);
+        User loginUser = userService.getLoginUser();
         app.setUserId(loginUser.getId());
         app.setReviewStatus(ReviewStatusEnum.REVIEWING.getValue());
         // 写入数据库
@@ -82,7 +81,7 @@ public class AppController {
         if (deleteRequest == null || deleteRequest.getId() <= 0) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-        User user = userService.getLoginUser(request);
+        User user = userService.getLoginUser();
         long id = deleteRequest.getId();
         // 判断是否存在
         App oldApp = appService.getById(id);
@@ -192,7 +191,7 @@ public class AppController {
                                                                  HttpServletRequest request) {
         ThrowUtils.throwIf(appQueryRequest == null, ErrorCode.PARAMS_ERROR);
         // 补充查询条件，只查询当前登录用户的数据
-        User loginUser = userService.getLoginUser(request);
+        User loginUser = userService.getLoginUser();
         appQueryRequest.setUserId(loginUser.getId());
         long current = appQueryRequest.getCurrent();
         long size = appQueryRequest.getPageSize();
@@ -209,11 +208,10 @@ public class AppController {
      * 编辑应用（给用户使用）
      *
      * @param appEditRequest
-     * @param request
      * @return
      */
     @PostMapping("/edit")
-    public BaseResponse<Boolean> editApp(@RequestBody AppEditRequest appEditRequest, HttpServletRequest request) {
+    public BaseResponse<Boolean> editApp(@RequestBody AppEditRequest appEditRequest) {
         if (appEditRequest == null || appEditRequest.getId() <= 0) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
@@ -222,7 +220,7 @@ public class AppController {
         BeanUtils.copyProperties(appEditRequest, app);
         // 数据校验
         appService.validApp(app, false);
-        User loginUser = userService.getLoginUser(request);
+        User loginUser = userService.getLoginUser();
         // 判断是否存在
         long id = appEditRequest.getId();
         App oldApp = appService.getById(id);
@@ -243,12 +241,11 @@ public class AppController {
     /**
      * 应用审核
      * @param reviewRequest
-     * @param request
      * @return
      */
     @PostMapping("/review")
     @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
-    public BaseResponse<Boolean> doAppReview(@RequestBody ReviewRequest reviewRequest, HttpServletRequest request) {
+    public BaseResponse<Boolean> doAppReview(@RequestBody ReviewRequest reviewRequest) {
         ThrowUtils.throwIf(reviewRequest == null, ErrorCode.PARAMS_ERROR);
         Long id = reviewRequest.getId();
         Integer reviewStatus = reviewRequest.getReviewStatus();
@@ -265,7 +262,7 @@ public class AppController {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "请勿重复审核");
         }
         // 更新审核状态
-        User loginUser = userService.getLoginUser(request);
+        User loginUser = userService.getLoginUser();
         App app = new App();
         app.setId(id);
         app.setReviewStatus(reviewStatus);

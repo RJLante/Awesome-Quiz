@@ -38,7 +38,7 @@ export async function aiGenerateQuestionUsingPost(
 /** aiGenerateQuestionSSE GET /api/question/ai_generate/sse */
 export async function aiGenerateQuestionSseUsingGet(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
-  params: API.aiGenerateQuestionSSEUsingGETParams,
+  params: API.aiGenerateQuestionSSEUsingGET1Params,
   options?: { [key: string]: any }
 ) {
   return request<API.SseEmitter>("/api/question/ai_generate/sse", {
@@ -53,7 +53,7 @@ export async function aiGenerateQuestionSseUsingGet(
 /** aiGenerateQuestionSSETest GET /api/question/ai_generate/sse/test */
 export async function aiGenerateQuestionSseTestUsingGet(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
-  params: API.aiGenerateQuestionSSETestUsingGETParams,
+  params: API.aiGenerateQuestionSSETestUsingGET1Params,
   options?: { [key: string]: any }
 ) {
   return request<API.SseEmitter>("/api/question/ai_generate/sse/test", {
@@ -98,7 +98,7 @@ export async function editQuestionUsingPost(
 /** getQuestionVOById GET /api/question/get/vo */
 export async function getQuestionVoByIdUsingGet(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
-  params: API.getQuestionVOByIdUsingGETParams,
+  params: API.getQuestionVOByIdUsingGET1Params,
   options?: { [key: string]: any }
 ) {
   return request<API.BaseResponseQuestionVO_>("/api/question/get/vo", {

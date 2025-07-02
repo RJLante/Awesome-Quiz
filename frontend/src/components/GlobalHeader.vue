@@ -23,7 +23,12 @@
     </a-col>
     <a-col flex="100px">
       <div v-if="loginUserStore.loginUser.id">
-        {{ loginUserStore.loginUser.userName ?? "无名" }}
+        <a-space>
+          <a-button type="primary" @click="router.push(`/user/info`)"
+            >{{ loginUserStore.loginUser.userName ?? "无名" }}
+          </a-button>
+          <a-button type="outline" @click="handleLogout">退出</a-button>
+        </a-space>
       </div>
       <div v-else>
         <a-button type="primary" href="/user/login">登录</a-button>
@@ -33,41 +38,42 @@
 </template>
 
 <script setup lang="ts">
-import { routes } from "@/router/routes";
-import { useRouter } from "vue-router";
+import { useRouter, type RouteRecordRaw } from "vue-router";
 import { computed, ref } from "vue";
 import { useLoginUserStore } from "@/store/userStore";
 import checkAccess from "@/access/checkAccess";
-
-const loginUserStore = useLoginUserStore();
+import { useAuthStore } from "@/store/auth";
 
 const router = useRouter();
-// 当前选中的菜单项
-const selectedKeys = ref(["/"]);
-// 路由跳转时，自动更新选中的菜单项
-router.afterEach((to, from, failure) => {
+const loginUserStore = useLoginUserStore();
+
+/** 当前选中的菜单 key */
+const selectedKeys = ref([router.currentRoute.value.path]);
+
+router.afterEach((to) => {
   selectedKeys.value = [to.path];
 });
 
-// 展示在菜单栏的路由数组
-const visibleRoutes = computed(() => {
-  return routes.filter((item) => {
-    if (item.meta?.hideInMenu) {
+/** 顶部可见菜单（运行时读取，彻底避开循环依赖） */
+const visibleRoutes = computed<RouteRecordRaw[]>(() =>
+  router.getRoutes().filter((item) => {
+    // 只展示顶级、已命名、未隐藏的路由
+    if (!item.name || item.children?.length || item.meta?.hideInMenu) {
       return false;
     }
-    // 根据权限过滤菜单
-    if (!checkAccess(loginUserStore.loginUser, item.meta?.access as string)) {
-      return false;
-    }
-    return true;
-  });
-});
+    // 权限控制
+    return checkAccess(loginUserStore.loginUser, item.meta?.access as string);
+  })
+);
 
-// 点击菜单跳转到对应页面
 const doMenuClick = (key: string) => {
-  router.push({
-    path: key,
-  });
+  router.push(key);
+};
+
+const authStore = useAuthStore();
+const handleLogout = () => {
+  authStore.logout();
+  router.replace("/user/login");
 };
 </script>
 

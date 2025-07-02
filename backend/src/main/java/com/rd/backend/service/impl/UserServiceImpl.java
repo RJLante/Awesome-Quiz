@@ -1,6 +1,7 @@
 package com.rd.backend.service.impl;
 
 import cn.hutool.core.collection.CollUtil;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.rd.backend.common.ErrorCode;
@@ -20,9 +21,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
+
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
 
@@ -34,12 +40,14 @@ import org.springframework.util.DigestUtils;
  */
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements UserService {
 
     /**
      * 盐值，混淆密码
      */
     public static final String SALT = "yupi";
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     public long userRegister(String userAccount, String userPassword, String checkPassword) {
@@ -65,12 +73,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             if (count > 0) {
                 throw new BusinessException(ErrorCode.PARAMS_ERROR, "账号重复");
             }
-            // 2. 加密
-            String encryptPassword = DigestUtils.md5DigestAsHex((SALT + userPassword).getBytes());
-            // 3. 插入数据
+
+            // 2. 加密 & 插入数据
             User user = new User();
             user.setUserAccount(userAccount);
-            user.setUserPassword(encryptPassword);
+            user.setUserPassword(passwordEncoder.encode(userPassword));
             boolean saveResult = this.save(user);
             if (!saveResult) {
                 throw new BusinessException(ErrorCode.SYSTEM_ERROR, "注册失败，数据库错误");
@@ -80,6 +87,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     }
 
     @Override
+    @Deprecated
     public LoginUserVO userLogin(String userAccount, String userPassword, HttpServletRequest request) {
         // 1. 校验
         if (StringUtils.isAnyBlank(userAccount, userPassword)) {
@@ -108,28 +116,29 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         return this.getLoginUserVO(user);
     }
 
-    /**
-     * 获取当前登录用户
-     *
-     * @param request
-     * @return
-     */
-    @Override
-    public User getLoginUser(HttpServletRequest request) {
-        // 先判断是否已登录
-        Object userObj = request.getSession().getAttribute(UserConstant.USER_LOGIN_STATE);
-        User currentUser = (User) userObj;
-        if (currentUser == null || currentUser.getId() == null) {
-            throw new BusinessException(ErrorCode.NOT_LOGIN_ERROR);
-        }
-        // 从数据库查询（追求性能的话可以注释，直接走缓存）
-        long userId = currentUser.getId();
-        currentUser = this.getById(userId);
-        if (currentUser == null) {
-            throw new BusinessException(ErrorCode.NOT_LOGIN_ERROR);
-        }
-        return currentUser;
-    }
+//    /**
+//     * 获取当前登录用户
+//     *
+//     * @param request
+//     * @return
+//     */
+//    @Override
+//    public User getLoginUser(HttpServletRequest request) {
+//        // 先判断是否已登录
+//        Object userObj = request.getSession().getAttribute(UserConstant.USER_LOGIN_STATE);
+//        User currentUser = (User) userObj;
+//        if (currentUser == null || currentUser.getId() == null) {
+//            throw new BusinessException(ErrorCode.NOT_LOGIN_ERROR);
+//        }
+//        // 从数据库查询（追求性能的话可以注释，直接走缓存）
+//        long userId = currentUser.getId();
+//        currentUser = this.getById(userId);
+//        if (currentUser == null) {
+//            throw new BusinessException(ErrorCode.NOT_LOGIN_ERROR);
+//        }
+//        return currentUser;
+//        return getLoginUser();
+//    }
 
     /**
      * 获取当前登录用户（允许未登录）
@@ -139,16 +148,25 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
      */
     @Override
     public User getLoginUserPermitNull(HttpServletRequest request) {
-        // 先判断是否已登录
-        Object userObj = request.getSession().getAttribute(UserConstant.USER_LOGIN_STATE);
-        User currentUser = (User) userObj;
-        if (currentUser == null || currentUser.getId() == null) {
-            return null;
+//        // 先判断是否已登录
+//        Object userObj = request.getSession().getAttribute(UserConstant.USER_LOGIN_STATE);
+//        User currentUser = (User) userObj;
+//        if (currentUser == null || currentUser.getId() == null) {
+//            return null;
+//        }
+//        // 从数据库查询（追求性能的话可以注释，直接走缓存）
+//        long userId = currentUser.getId();
+//        return this.getById(userId);
+        try {
+            return getLoginUser();
+        } catch (BusinessException e) {
+            if (e.getCode() == ErrorCode.NOT_LOGIN_ERROR.getCode()) {
+                return null;
+            }
+            throw e;
         }
-        // 从数据库查询（追求性能的话可以注释，直接走缓存）
-        long userId = currentUser.getId();
-        return this.getById(userId);
     }
+
 
     /**
      * 是否为管理员
@@ -158,15 +176,18 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
      */
     @Override
     public boolean isAdmin(HttpServletRequest request) {
-        // 仅管理员可查询
-        Object userObj = request.getSession().getAttribute(UserConstant.USER_LOGIN_STATE);
-        User user = (User) userObj;
-        return isAdmin(user);
+//        // 仅管理员可查询
+//        Object userObj = request.getSession().getAttribute(UserConstant.USER_LOGIN_STATE);
+//        User user = (User) userObj;
+//        return isAdmin(user);
+        return isAdmin(getLoginUser());
     }
 
     @Override
     public boolean isAdmin(User user) {
-        return user != null && UserRoleEnum.ADMIN.getValue().equals(user.getUserRole());
+//        return user != null && UserRoleEnum.ADMIN.getValue().equals(user.getUserRole());
+        return user != null
+                && UserRoleEnum.ADMIN.getValue().equals(user.getUserRole());
     }
 
     /**
@@ -176,11 +197,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
      */
     @Override
     public boolean userLogout(HttpServletRequest request) {
-        if (request.getSession().getAttribute(UserConstant.USER_LOGIN_STATE) == null) {
-            throw new BusinessException(ErrorCode.OPERATION_ERROR, "未登录");
-        }
-        // 移除登录态
-        request.getSession().removeAttribute(UserConstant.USER_LOGIN_STATE);
+//        if (request.getSession().getAttribute(UserConstant.USER_LOGIN_STATE) == null) {
+//            throw new BusinessException(ErrorCode.OPERATION_ERROR, "未登录");
+//        }
+//        // 移除登录态
+//        request.getSession().removeAttribute(UserConstant.USER_LOGIN_STATE);
         return true;
     }
 
@@ -192,6 +213,18 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         LoginUserVO loginUserVO = new LoginUserVO();
         BeanUtils.copyProperties(user, loginUserVO);
         return loginUserVO;
+    }
+
+    @Override
+    public LoginUserVO getLoginUserVO(String userAccount) {
+        User user = this.getOne(new LambdaQueryWrapper<User>()
+                .eq(User::getUserAccount, userAccount)
+                .eq(User::getIsDelete, 0)
+        );
+        if (user == null) {
+            throw new BusinessException(ErrorCode.NOT_FOUND_ERROR, "用户不存在");
+        }
+        return this.getLoginUserVO(user);
     }
 
     @Override
@@ -236,4 +269,29 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
                 sortField);
         return queryWrapper;
     }
+
+    private String currentUsername() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated()
+                || "anonymousUser".equals(auth.getPrincipal())) {
+            throw new BusinessException(ErrorCode.NOT_LOGIN_ERROR, "未登录");
+        }
+        return auth.getName();
+    }
+
+    /**
+     * 获取当前登录用户（JWT 版）
+     */
+    public User getLoginUser() {
+        String userAccount = currentUsername();
+        User user = this.getOne(new LambdaQueryWrapper<User>()
+                .eq(User::getUserAccount, userAccount)
+                .eq(User::getIsDelete, 0));
+        if (user == null) {
+            throw new BusinessException(ErrorCode.NOT_LOGIN_ERROR);
+        }
+        return user;
+    }
+
+
 }

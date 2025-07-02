@@ -61,9 +61,9 @@
 <script setup lang="ts">
 import { defineProps, reactive, ref, withDefaults } from "vue";
 import API from "@/api";
-import { useRouter } from "vue-router";
 import { aiGenerateQuestionUsingPost } from "@/api/questionController";
 import message from "@arco-design/web-vue/es/message";
+import { useAuthStore } from "@/store/auth";
 
 interface Props {
   appId: string;
@@ -131,10 +131,17 @@ const handleSSESubmit = async () => {
 
   sseSubmitting.value = true;
   // 创建 SSE 请求
+  const base =
+    process.env.VUE_APP_API_BASE ||
+    "http://localhost:8101" ||
+    window.location.origin;
+  const { token } = useAuthStore();
   const eventSource = new EventSource(
-    // todo 手动填写完整的后端地址
-    `http://localhost:8101/api/question/ai_generate/sse` +
-      `?appId=${props.appId}&optionNumber=${form.optionNumber}&questionNumber=${form.questionNumber}`
+    `${base}/api/question/ai_generate/sse` +
+      `?token=${encodeURIComponent(token)}` + // 把 JWT 加到查询串
+      `&appId=${props.appId}` +
+      `&optionNumber=${form.optionNumber}` +
+      `&questionNumber=${form.questionNumber}`
   );
   let first = true;
   // 接收消息

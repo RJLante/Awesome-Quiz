@@ -5,7 +5,7 @@ declare namespace API {
     questionNumber?: number;
   };
 
-  type aiGenerateQuestionSSETestUsingGETParams = {
+  type aiGenerateQuestionSSETestUsingGET1Params = {
     appId?: number;
     optionNumber?: number;
     questionNumber?: number;
@@ -13,7 +13,7 @@ declare namespace API {
     isVip?: boolean;
   };
 
-  type aiGenerateQuestionSSEUsingGETParams = {
+  type aiGenerateQuestionSSEUsingGET1Params = {
     appId?: number;
     optionNumber?: number;
     questionNumber?: number;
@@ -150,6 +150,12 @@ declare namespace API {
     message?: string;
   };
 
+  type BaseResponseLoginTokenVO_ = {
+    code?: number;
+    data?: LoginTokenVO;
+    message?: string;
+  };
+
   type BaseResponseLoginUserVO_ = {
     code?: number;
     data?: LoginUserVO;
@@ -280,44 +286,49 @@ declare namespace API {
     id?: number;
   };
 
-  type getAppAnswerResultCountUsingGETParams = {
+  type getAppAnswerResultCountUsingGET1Params = {
     /** appId */
     appId?: number;
   };
 
-  type getAppVOByIdUsingGETParams = {
+  type getAppVOByIdUsingGET1Params = {
     /** id */
     id?: number;
   };
 
-  type getPostVOByIdUsingGETParams = {
+  type getPostVOByIdUsingGET1Params = {
     /** id */
     id?: number;
   };
 
-  type getQuestionVOByIdUsingGETParams = {
+  type getQuestionVOByIdUsingGET1Params = {
     /** id */
     id?: number;
   };
 
-  type getScoringResultVOByIdUsingGETParams = {
+  type getScoringResultVOByIdUsingGET1Params = {
     /** id */
     id?: number;
   };
 
-  type getUserAnswerVOByIdUsingGETParams = {
+  type getUserAnswerVOByIdUsingGET1Params = {
     /** id */
     id?: number;
   };
 
-  type getUserByIdUsingGETParams = {
+  type getUserByIdUsingGET1Params = {
     /** id */
     id?: number;
   };
 
-  type getUserVOByIdUsingGETParams = {
+  type getUserVOByIdUsingGET1Params = {
     /** id */
     id?: number;
+  };
+
+  type LoginTokenVO = {
+    token?: string;
+    userInfo?: LoginUserVO;
   };
 
   type LoginUserVO = {
@@ -716,7 +727,7 @@ declare namespace API {
     timeout?: number;
   };
 
-  type uploadFileUsingPOSTParams = {
+  type uploadFileUsingPOST1Params = {
     biz?: string;
   };
 

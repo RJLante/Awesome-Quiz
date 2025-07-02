@@ -50,7 +50,7 @@ export async function editAppUsingPost(
 /** getAppVOById GET /api/app/get/vo */
 export async function getAppVoByIdUsingGet(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
-  params: API.getAppVOByIdUsingGETParams,
+  params: API.getAppVOByIdUsingGET1Params,
   options?: { [key: string]: any }
 ) {
   return request<API.BaseResponseAppVO_>("/api/app/get/vo", {

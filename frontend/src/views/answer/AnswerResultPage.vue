@@ -30,8 +30,10 @@
             答题时间：{{ dayjs(data.createTime).format("YYYY-MM-DD HH:mm:ss") }}
           </p>
           <a-space size="medium">
-            <a-button type="primary" :href="`/answer/do/${data.appId}`"
-              >去答题
+            <a-button
+              type="primary"
+              @click="router.push(`/answer/do/${data.appId}`)"
+              >再答一次
             </a-button>
           </a-space>
         </a-col>

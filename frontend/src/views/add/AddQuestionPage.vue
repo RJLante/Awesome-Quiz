@@ -245,7 +245,7 @@ const handleSubmit = async () => {
  * AI 生成题目成功后执行
  */
 const onAiGenerateSuccess = (result: API.QuestionContentDTO[]) => {
-  message.success(`生成题目成功，生成了 ${result.legnth} 道题目`);
+  message.success(`生成题目成功`);
   questionContent.value = [...questionContent.value, ...result];
 };
 

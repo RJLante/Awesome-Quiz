@@ -62,11 +62,10 @@ public class UserAnswerController {
      * 创建用户答案
      *
      * @param userAnswerAddRequest
-     * @param request
      * @return
      */
     @PostMapping("/add")
-    public BaseResponse<Long> addUserAnswer(@RequestBody UserAnswerAddRequest userAnswerAddRequest, HttpServletRequest request) {
+    public BaseResponse<Long> addUserAnswer(@RequestBody UserAnswerAddRequest userAnswerAddRequest) {
         ThrowUtils.throwIf(userAnswerAddRequest == null, ErrorCode.PARAMS_ERROR);
         // 在此处将实体类和 DTO 进行转换
         UserAnswer userAnswer = new UserAnswer();
@@ -84,7 +83,7 @@ public class UserAnswerController {
             throw new BusinessException(ErrorCode.NO_AUTH_ERROR, "应用未通过审核，无法测评");
         }
         // 填充默认值
-        User loginUser = userService.getLoginUser(request);
+        User loginUser = userService.getLoginUser();
         userAnswer.setUserId(loginUser.getId());
         // 写入数据库
 
@@ -124,7 +123,7 @@ public class UserAnswerController {
         if (deleteRequest == null || deleteRequest.getId() <= 0) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-        User user = userService.getLoginUser(request);
+        User user = userService.getLoginUser();
         long id = deleteRequest.getId();
         // 判断是否存在
         UserAnswer oldUserAnswer = userAnswerService.getById(id);
@@ -234,7 +233,7 @@ public class UserAnswerController {
                                                                  HttpServletRequest request) {
         ThrowUtils.throwIf(userAnswerQueryRequest == null, ErrorCode.PARAMS_ERROR);
         // 补充查询条件，只查询当前登录用户的数据
-        User loginUser = userService.getLoginUser(request);
+        User loginUser = userService.getLoginUser();
         userAnswerQueryRequest.setUserId(loginUser.getId());
         long current = userAnswerQueryRequest.getCurrent();
         long size = userAnswerQueryRequest.getPageSize();
@@ -251,11 +250,10 @@ public class UserAnswerController {
      * 编辑用户答案（给用户使用）
      *
      * @param userAnswerEditRequest
-     * @param request
      * @return
      */
     @PostMapping("/edit")
-    public BaseResponse<Boolean> editUserAnswer(@RequestBody UserAnswerEditRequest userAnswerEditRequest, HttpServletRequest request) {
+    public BaseResponse<Boolean> editUserAnswer(@RequestBody UserAnswerEditRequest userAnswerEditRequest) {
         if (userAnswerEditRequest == null || userAnswerEditRequest.getId() <= 0) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
@@ -266,7 +264,7 @@ public class UserAnswerController {
         userAnswer.setChoices(JSONUtil.toJsonStr(choices));
         // 数据校验
         userAnswerService.validUserAnswer(userAnswer, false);
-        User loginUser = userService.getLoginUser(request);
+        User loginUser = userService.getLoginUser();
         // 判断是否存在
         long id = userAnswerEditRequest.getId();
         UserAnswer oldUserAnswer = userAnswerService.getById(id);

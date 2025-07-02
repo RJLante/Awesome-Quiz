@@ -69,11 +69,10 @@ public class QuestionController {
      * 创建题目
      *
      * @param questionAddRequest
-     * @param request
      * @return
      */
     @PostMapping("/add")
-    public BaseResponse<Long> addQuestion(@RequestBody QuestionAddRequest questionAddRequest, HttpServletRequest request) {
+    public BaseResponse<Long> addQuestion(@RequestBody QuestionAddRequest questionAddRequest) {
         ThrowUtils.throwIf(questionAddRequest == null, ErrorCode.PARAMS_ERROR);
         // 在此处将实体类和 DTO 进行转换
         Question question = new Question();
@@ -84,7 +83,7 @@ public class QuestionController {
         // 数据校验
         questionService.validQuestion(question, true);
         // todo 填充默认值
-        User loginUser = userService.getLoginUser(request);
+        User loginUser = userService.getLoginUser();
         question.setUserId(loginUser.getId());
         // 写入数据库
         boolean result = questionService.save(question);
@@ -106,7 +105,7 @@ public class QuestionController {
         if (deleteRequest == null || deleteRequest.getId() <= 0) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-        User user = userService.getLoginUser(request);
+        User user = userService.getLoginUser();
         long id = deleteRequest.getId();
         // 判断是否存在
         Question oldQuestion = questionService.getById(id);
@@ -216,7 +215,7 @@ public class QuestionController {
                                                                  HttpServletRequest request) {
         ThrowUtils.throwIf(questionQueryRequest == null, ErrorCode.PARAMS_ERROR);
         // 补充查询条件，只查询当前登录用户的数据
-        User loginUser = userService.getLoginUser(request);
+        User loginUser = userService.getLoginUser();
         questionQueryRequest.setUserId(loginUser.getId());
         long current = questionQueryRequest.getCurrent();
         long size = questionQueryRequest.getPageSize();
@@ -233,11 +232,10 @@ public class QuestionController {
      * 编辑题目（给用户使用）
      *
      * @param questionEditRequest
-     * @param request
      * @return
      */
     @PostMapping("/edit")
-    public BaseResponse<Boolean> editQuestion(@RequestBody QuestionEditRequest questionEditRequest, HttpServletRequest request) {
+    public BaseResponse<Boolean> editQuestion(@RequestBody QuestionEditRequest questionEditRequest) {
         if (questionEditRequest == null || questionEditRequest.getId() <= 0) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
@@ -248,7 +246,7 @@ public class QuestionController {
         question.setQuestionContent(JSONUtil.toJsonStr(questionContentDTO));
         // 数据校验
         questionService.validQuestion(question, false);
-        User loginUser = userService.getLoginUser(request);
+        User loginUser = userService.getLoginUser();
         // 判断是否存在
         long id = questionEditRequest.getId();
         Question oldQuestion = questionService.getById(id);
@@ -397,7 +395,7 @@ public class QuestionController {
 //    }
 
     @GetMapping("/ai_generate/sse")
-    public SseEmitter aiGenerateQuestionSSE(AiGenerateQuestionRequest aiGenerateQuestionRequest, HttpServletRequest request) {
+    public SseEmitter aiGenerateQuestionSSE(AiGenerateQuestionRequest aiGenerateQuestionRequest) {
         ThrowUtils.throwIf(aiGenerateQuestionRequest == null, ErrorCode.PARAMS_ERROR);
         // 获取参数
         Long appId = aiGenerateQuestionRequest.getAppId();
@@ -417,7 +415,7 @@ public class QuestionController {
         StringBuilder messageBuilder = new StringBuilder();
 
         // 获取登录用户
-        User loginUser = userService.getLoginUser(request);
+        User loginUser = userService.getLoginUser();
         // 默认全局线程池
         Scheduler scheduler = Schedulers.io();
         if (loginUser.getUserRole().equals("vip") || loginUser.getUserRole().equals("admin")) {

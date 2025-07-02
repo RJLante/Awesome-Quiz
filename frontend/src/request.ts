@@ -1,51 +1,58 @@
-import axios from "axios";
+// src/request.ts
+import axios, {
+  AxiosError,
+  AxiosHeaders,
+  InternalAxiosRequestConfig,
+} from "axios";
+import { useAuthStore } from "@/store/auth";
 import { Message } from "@arco-design/web-vue";
 
-const myAxios = axios.create({
-  baseURL: "http://localhost:8101",
-  timeout: 60000,
-  withCredentials: true,
+/* ========= 实例 ========= */
+const instance = axios.create({
+  // 后端端口；如有 .env.development -> VUE_APP_API_BASE，写那里也行
+  baseURL: process.env.VUE_APP_API_BASE || "http://localhost:8101",
+  timeout: 60_000,
+  withCredentials: false,
 });
 
-// 全局请求拦截器
-myAxios.interceptors.request.use(
-  function (config) {
-    // Do something before request is sent
-    return config;
-  },
-  function (error) {
-    // Do something with request error
-    return Promise.reject(error);
-  }
-);
+const toBearer = (raw: string) => `Bearer ${raw.replace(/^Bearer\s+/i, "")}`;
 
-// 全局响应拦截器
-myAxios.interceptors.response.use(
-  function (response) {
-    console.log(response);
-    // Any status code that lie within the range of 2xx cause this function to trigger
-    // Do something with response data
-    const { data } = response;
+/* ========= 请求拦截：自动加 JWT ========= */
+instance.interceptors.request.use(
+  (config: InternalAxiosRequestConfig) => {
+    const { token } = useAuthStore();
+    if (token) {
+      const headerToken = toBearer(token);
 
-    // 未登录
-    if (data.code === 40100) {
-      // 不是获取用户信息的请求，并且用户目前不是已经在用户登录页面，则跳转到登录页面
-      if (
-        !response.request.responseURL.includes("user/get/login") &&
-        !window.location.pathname.includes("/user/login")
-      ) {
-        Message.warning("请先登录");
-        window.location.href = `/user/login?redirect=${window.location.href}`;
+      // Axios v1 在两种 headers 结构间切换：AxiosHeaders ⇆ 普通对象
+      if (config.headers && "set" in config.headers) {
+        // TS 认为 headers 可能是 AxiosHeaders
+        (config.headers as AxiosHeaders).set("Authorization", headerToken);
+      } else {
+        // headers 是普通对象或 undefined
+        (config.headers ??= {} as any).Authorization = headerToken;
       }
     }
-
-    return response;
+    return config;
   },
-  function (error) {
-    // Any status codes that falls outside the range of 2xx cause this function to trigger
-    // Do something with response error
-    return Promise.reject(error);
+  (error: AxiosError) => Promise.reject(error)
+);
+
+/* ========= 响应拦截：统一 401 ========= */
+instance.interceptors.response.use(
+  (res) => res,
+  (err: AxiosError) => {
+    const status = err.response?.status;
+    const bizCode = (err.response?.data as any)?.code; // 后端自定义
+
+    if (status === 401 && bizCode === 10003 /* TOKEN_EXPIRED */) {
+      useAuthStore().logout();
+      Message.error("登录失效，请重新登录");
+    } else if (status === 401) {
+      Message.warning("无权限访问该资源");
+    }
+    return Promise.reject(err);
   }
 );
 
-export default myAxios;
+export default instance;

@@ -11,8 +11,8 @@
         <router-view />
       </a-layout-content>
       <a-layout-footer class="footer">
-        <a href="https://www.code-nav.cn" target="_blank">
-          编程导航 by 程序员鱼皮
+        <a href="https://github.com/RJLante/Awesome-Quiz" target="_blank">
+          Awesome Quiz
         </a>
       </a-layout-footer>
     </a-layout>

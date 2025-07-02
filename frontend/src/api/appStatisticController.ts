@@ -18,7 +18,7 @@ export async function getAppAnswerCountUsingGet(options?: {
 /** getAppAnswerResultCount GET /api/app/statistic/answer_result_count */
 export async function getAppAnswerResultCountUsingGet(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
-  params: API.getAppAnswerResultCountUsingGETParams,
+  params: API.getAppAnswerResultCountUsingGET1Params,
   options?: { [key: string]: any }
 ) {
   return request<API.BaseResponseListAppAnswerResultCountDTO_>(

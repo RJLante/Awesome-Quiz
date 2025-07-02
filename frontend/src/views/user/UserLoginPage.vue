@@ -39,12 +39,12 @@
 <script setup lang="ts">
 import { reactive } from "vue";
 import API from "@/api";
-import { userLoginUsingPost } from "@/api/userController";
-import { useLoginUserStore } from "@/store/userStore";
+
 import message from "@arco-design/web-vue/es/message";
 import { useRouter } from "vue-router";
+import { useAuthStore } from "@/store/auth";
 
-const loginUserStore = useLoginUserStore();
+const authStore = useAuthStore();
 const router = useRouter();
 
 const form = reactive({
@@ -56,16 +56,15 @@ const form = reactive({
  * 提交
  */
 const handleSubmit = async () => {
-  const res = await userLoginUsingPost(form);
-  if (res.data.code === 0) {
-    await loginUserStore.fetchLoginUser();
+  const ok = await authStore.login(form); // ← 直接调用封装好的动作
+  if (ok) {
     message.success("登录成功");
     router.push({
       path: "/",
       replace: true,
     });
   } else {
-    message.error("登录失败，" + res.data.message);
+    message.error("登录失败");
   }
 };
 </script>
