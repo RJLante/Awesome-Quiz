@@ -9,23 +9,45 @@
       @submit="handleSubmit"
     >
       <a-form-item label="应用 id">
-        {{ appId }}
+        <div style="display: flex; align-items: center">
+          <span>{{ appId }}</span>
+          <a-progress
+            v-if="drawerProgressVisible"
+            :percent="drawerProgress"
+            style="margin-left: 16px; flex: 1"
+          />
+        </div>
       </a-form-item>
       <a-form-item label="题目列表" :content-flex="false" :merge-props="false">
-        <a-space size="medium">
-          <a-button @click="addQuestion(questionContent.length)">
-            底部添加题目
-          </a-button>
-          <AiGenerateQuesitonDrawer
-            :appId="appId"
-            :onSuccess="onAiGenerateSuccess"
-            :onSSESuccess="onAiGenerateSuccessSSE"
-            :onSSEClose="onSSEClose"
-            :onSSEStart="onSSEStart"
-            :onSSEError="onSSEError"
-          />
-        </a-space>
+        <!-- AI 生成题目抽屉：内部不再渲染进度条 -->
+        <!-- 打开 AI 生成抽屉 -->
+        <a-button type="primary" @click="drawerVisible = true">
+          AI 生成题目
+        </a-button>
+        <AiGenerateQuesitonDrawer
+          v-model:visible="drawerVisible"
+          :appId="appId"
+          @refresh="mergeQuestions"
+          @reload="loadData"
+          @progress="
+            (val) => {
+              drawerProgress = val;
+              drawerProgressVisible = true;
+            }
+          "
+          :onSuccess="onAiGenerateSuccess"
+          :onSSESuccess="onAiGenerateSuccessSSE"
+          :onSSEClose="onSSEClose"
+          :onSSEStart="onSSEStart"
+          :onSSEError="onSSEError"
+        />
         <!-- 遍历每道题目 -->
+        <a-progress
+          v-if="drawerProgress > 0 && drawerProgress < 100"
+          :percent="drawerProgress"
+          status="active"
+          style="width: 300px; margin: 16px 0; margin-left: 20px"
+        />
         <div v-for="(question, index) in questionContent" :key="index">
           <a-space size="large">
             <h3>题目 {{ index + 1 }}</h3>
@@ -95,9 +117,14 @@
         </div>
       </a-form-item>
       <a-form-item>
-        <a-button type="primary" html-type="submit" style="width: 120px">
-          提交
-        </a-button>
+        <a-space size="medium">
+          <a-button type="primary" html-type="submit" style="width: 120px">
+            提交
+          </a-button>
+          <a-button @click="addQuestion(questionContent.length)">
+            添加题目
+          </a-button>
+        </a-space>
       </a-form-item>
     </a-form>
   </div>
@@ -107,6 +134,7 @@
 import { defineProps, ref, watchEffect, withDefaults } from "vue";
 import API from "@/api";
 import { useRouter } from "vue-router";
+import { watch } from "vue";
 import {
   addQuestionUsingPost,
   editQuestionUsingPost,
@@ -119,6 +147,13 @@ interface Props {
   appId: string;
 }
 
+const drawerProgress = ref(0);
+const drawerProgressVisible = ref(false);
+const drawerVisible = ref(false);
+const mergeQuestions = (newList: API.QuestionContentDTO[]): void => {
+  questionContent.value = [...questionContent.value, ...newList];
+};
+
 const props = withDefaults(defineProps<Props>(), {
   appId: () => {
     return "";
@@ -129,7 +164,12 @@ const router = useRouter();
 
 // 题目内容结构（理解为题目列表）
 const questionContent = ref<API.QuestionContentDTO[]>([]);
-
+watch(drawerVisible, (open) => {
+  if (!open) {
+    drawerProgressVisible.value = false;
+    drawerProgress.value = 0;
+  }
+});
 /**
  * 添加题目
  * @param index
@@ -184,27 +224,47 @@ const oldQuestion = ref<API.QuestionVO>();
 /**
  * 加载数据
  */
+// const loadData = async () => {
+//   if (!props.appId) {
+//     return;
+//   }
+//   const res = await listQuestionVoByPageUsingPost({
+//     appId: props.appId as any,
+//     current: 1,
+//     pageSize: 1,
+//     sortField: "createTime",
+//     sortOrder: "descend",
+//   });
+//   if (res.data.code === 0 && res.data.data?.records) {
+//     oldQuestion.value = res.data.data?.records[0];
+//     if (oldQuestion.value) {
+//       questionContent.value = oldQuestion.value.questionContent ?? [];
+//     }
+//   } else {
+//     message.error("获取数据失败，" + res.data.message);
+//   }
+// };
 const loadData = async () => {
-  if (!props.appId) {
-    return;
-  }
+  if (!props.appId) return;
+  // 多拉几条，确保能拿到全部“散装”记录
   const res = await listQuestionVoByPageUsingPost({
     appId: props.appId as any,
     current: 1,
-    pageSize: 1,
+    pageSize: 20,
     sortField: "createTime",
-    sortOrder: "descend",
+    sortOrder: "ascend",
   });
   if (res.data.code === 0 && res.data.data?.records) {
-    oldQuestion.value = res.data.data?.records[0];
-    if (oldQuestion.value) {
-      questionContent.value = oldQuestion.value.questionContent ?? [];
-    }
+    const allQvos = res.data.data.records;
+    // 扁平化：把每条记录的 questionContent 数组都放到一个大数组里
+    questionContent.value = allQvos.flatMap((qvo) => qvo.questionContent ?? []);
+    // 如果后续还要用某个 id 来判断“编辑”之类的逻辑，
+    // 可以取第一个 qvo.id 存下来
+    oldQuestion.value = allQvos[0];
   } else {
     message.error("获取数据失败，" + res.data.message);
   }
 };
-
 // 获取旧数据
 watchEffect(() => {
   loadData();
@@ -245,7 +305,6 @@ const handleSubmit = async () => {
  * AI 生成题目成功后执行
  */
 const onAiGenerateSuccess = (result: API.QuestionContentDTO[]) => {
-  message.success(`生成题目成功`);
   questionContent.value = [...questionContent.value, ...result];
 };
 

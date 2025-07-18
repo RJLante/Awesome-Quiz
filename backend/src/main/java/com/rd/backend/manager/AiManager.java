@@ -5,6 +5,7 @@ import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.rd.backend.common.ErrorCode;
 import com.rd.backend.exception.BusinessException;
+import com.rd.backend.model.dto.question.QuestionContentDTO;
 import com.rd.backend.model.entity.App;
 import com.rd.backend.model.enums.AppTypeEnum;
 import com.zhipu.oapi.ClientV4;
@@ -29,6 +30,25 @@ public class AiManager {
     private static final float UNSTABLE_TEMPERATURE = 0.99f;
 
     private static final int DEFAULT_BATCH_SIZE = 10;
+
+    private static final String GENERATE_QUESTION_SYSTEM_MESSAGE = "你是一位严谨的出题专家，我会给你如下信息：\n" +
+            "```\n" +
+            "应用名称，\n" +
+            "【【【应用描述】】】，\n" +
+            "应用类别，\n" +
+            "要生成的题目数，\n" +
+            "每个题目的选项数\n" +
+            "```\n" +
+            "\n" +
+            "请你根据上述信息，按照以下步骤来出题：\n" +
+            "1. 要求：题目和选项尽可能地短，题目不要包含序号，每题的选项数以我提供的为主，题目不能重复\n" +
+            "2. 严格按照下面的 json 格式输出题目和选项\n" +
+            "```\n" +
+            "[{\"options\":[{\"value\":\"选项内容\",\"key\":\"A\"},{\"value\":\"\",\"key\":\"B\"}],\"title\":\"题目标题\"}]\n" +
+            "```\n" +
+            "title \u200F是题目，options \u200B是选项，每个选项的 ke\u200Fy 按照英文字母序（比如\u200B A、B、C、D）以此类\u061C推，value 是选项内容\n" +
+            "3. 检查题目是否包含序号，若包含序号则去除序号\n" +
+            "4. 返回的题目列表格式必须为 JSON 数组\n";
 
     public List<String> generateQuestionsInBatches(String systemMessage, App app, int totalNumber, int optionNumber) {
         // 存储所有批次AI生成的JSON结果
@@ -147,6 +167,52 @@ public class AiManager {
         }
     }
 
+
+    /**
+     * 生成题目的用户消息
+     * @param app
+     * @param questionNumber
+     * @param optionNumber
+     * @return
+     */
+    public String getGenerateQuestionUserMessage(App app, int questionNumber, int optionNumber) {
+        StringBuilder userMessage = new StringBuilder();
+        userMessage.append(app.getAppName()).append("\n");
+        userMessage.append(app.getAppDesc()).append("\n");
+        userMessage.append(AppTypeEnum.getEnumByValue(app.getAppType()).getText() + "类").append("\n");
+        userMessage.append(questionNumber).append("\n");
+        userMessage.append(optionNumber);
+        return userMessage.toString();
+    }
+
+    /**
+     * 统一生成题目并解析为 DTO 列表
+     *
+     * @param app            应用元信息
+     * @param questionNumber 题目数
+     * @param optionNumber   选项数
+     * @return 解析后的题目列表
+     */
+    public List<QuestionContentDTO> generateQuestionList(App app,
+                                                         int questionNumber,
+                                                         int optionNumber) {
+        // 1. 构造用户消息
+        String userMessage = getGenerateQuestionUserMessage(app, questionNumber, optionNumber);
+        // 2. 调用同步稳定请求
+        String result = doSyncStableRequest(GENERATE_QUESTION_SYSTEM_MESSAGE, userMessage);
+        // 3. 解析为 QuestionContentDTO 列表
+        String content = JSONUtil.parseObj(result).getByPath("message.content", String.class);
+        if (StrUtil.isBlank(content)) {
+            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "AI 生成内容为空");
+        }
+        int start = content.indexOf("[");
+        int end = content.lastIndexOf("]");
+        if (start == -1 || end == -1) {
+            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "AI 生成格式错误");
+        }
+        String json = content.substring(start, end + 1);
+        return JSONUtil.toList(json, QuestionContentDTO.class);
+    }
 
     /**
      * 同步请求（稳定）

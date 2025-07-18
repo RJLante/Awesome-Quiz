@@ -27,7 +27,7 @@
   </a-form>
   <a-table
     :columns="columns"
-    :data="dataList"
+    :data="tableData"
     :pagination="{
       showTotal: true,
       pageSize: searchParams.pageSize,
@@ -37,10 +37,8 @@
     @page-change="onPageChange"
   >
     <template #questionContent="{ record }">
-      <div
-        v-for="question in JSON.parse(record.questionContent)"
-        :key="question.title"
-      >
+      <!--      v-for="question in JSON.parse(record.questionContent)"-->
+      <div v-for="question in record.parsedQ" :key="question.title">
         {{ question }}
       </div>
     </template>
@@ -80,7 +78,17 @@ const searchParams = ref<API.QuestionQueryRequest>({
   ...initSearchParams,
 });
 const dataList = ref<API.Question[]>([]);
-const total = ref<number>(0);
+const tableData = ref<API.QuestionVOWithParsed[]>([]);
+const total = ref(0);
+
+function safeParse(content: string): API.QuestionContentDTO[] {
+  try {
+    return JSON.parse(content) as API.QuestionContentDTO[];
+  } catch (e) {
+    console.warn("解析 questionContent 失败", content, e);
+    return [];
+  }
+}
 
 /**
  * 加载数据
@@ -88,8 +96,16 @@ const total = ref<number>(0);
 const loadData = async () => {
   const res = await listQuestionByPageUsingPost(searchParams.value);
   if (res.data.code === 0) {
-    dataList.value = res.data.data?.records || [];
+    // dataList.value = res.data.data?.records || [];
+    // total.value = res.data.data?.total || 0;
+    const records = res.data.data?.records || [];
+    dataList.value = records;
     total.value = res.data.data?.total || 0;
+    // 解析 questionContent 并挂到 parsedQ
+    tableData.value = records.map((r) => ({
+      ...r,
+      parsedQ: safeParse(r.questionContent ?? "[]"),
+    }));
   } else {
     message.error("获取数据失败，" + res.data.message);
   }

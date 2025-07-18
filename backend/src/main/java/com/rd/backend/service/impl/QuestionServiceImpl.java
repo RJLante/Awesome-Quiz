@@ -27,10 +27,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -165,7 +162,9 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
     @Override
     public Page<QuestionVO> getQuestionVOPage(Page<Question> questionPage, HttpServletRequest request) {
         List<Question> questionList = questionPage.getRecords();
-        Page<QuestionVO> questionVOPage = new Page<>(questionPage.getCurrent(), questionPage.getSize(), questionPage.getTotal());
+        Page<QuestionVO> questionVOPage = new Page<>(questionPage.getCurrent(),
+                questionPage.getSize(), questionPage.getTotal());
+
         if (CollUtil.isEmpty(questionList)) {
             return questionVOPage;
         }
@@ -180,26 +179,7 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
         Set<Long> userIdSet = questionList.stream().map(Question::getUserId).collect(Collectors.toSet());
         Map<Long, List<User>> userIdUserListMap = userService.listByIds(userIdSet).stream()
                 .collect(Collectors.groupingBy(User::getId));
-        // 2. 已登录，获取用户点赞、收藏状态
-//        Map<Long, Boolean> questionIdHasThumbMap = new HashMap<>();
-//        Map<Long, Boolean> questionIdHasFavourMap = new HashMap<>();
-//        User loginUser = userService.getLoginUserPermitNull(request);
-//        if (loginUser != null) {
-//            Set<Long> questionIdSet = questionList.stream().map(Question::getId).collect(Collectors.toSet());
-//            loginUser = userService.getLoginUser(request);
-//            // 获取点赞
-//            QueryWrapper<QuestionThumb> questionThumbQueryWrapper = new QueryWrapper<>();
-//            questionThumbQueryWrapper.in("questionId", questionIdSet);
-//            questionThumbQueryWrapper.eq("userId", loginUser.getId());
-//            List<QuestionThumb> questionQuestionThumbList = questionThumbMapper.selectList(questionThumbQueryWrapper);
-//            questionQuestionThumbList.forEach(questionQuestionThumb -> questionIdHasThumbMap.put(questionQuestionThumb.getQuestionId(), true));
-//            // 获取收藏
-//            QueryWrapper<QuestionFavour> questionFavourQueryWrapper = new QueryWrapper<>();
-//            questionFavourQueryWrapper.in("questionId", questionIdSet);
-//            questionFavourQueryWrapper.eq("userId", loginUser.getId());
-//            List<QuestionFavour> questionFavourList = questionFavourMapper.selectList(questionFavourQueryWrapper);
-//            questionFavourList.forEach(questionFavour -> questionIdHasFavourMap.put(questionFavour.getQuestionId(), true));
-//        }
+
         // 填充信息
         questionVOList.forEach(questionVO -> {
             Long userId = questionVO.getUserId();
@@ -208,13 +188,79 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
                 user = userIdUserListMap.get(userId).get(0);
             }
             questionVO.setUser(userService.getUserVO(user));
-//            questionVO.setHasThumb(questionIdHasThumbMap.getOrDefault(questionVO.getId(), false));
-//            questionVO.setHasFavour(questionIdHasFavourMap.getOrDefault(questionVO.getId(), false));
         });
         // endregion
 
         questionVOPage.setRecords(questionVOList);
         return questionVOPage;
     }
+
+    /**
+     * 将 Question 分页结果转成 QuestionVO 分页结果
+     */
+//    @Override
+//    public Page<QuestionVO> getQuestionVOPage(Page<Question> questionPage,
+//                                              HttpServletRequest request) {
+//
+//        // ---------- 0. 拿出当前记录 ----------
+//        List<Question> questionList = questionPage.getRecords();
+//
+//        // ---------- 1. 若 pageSize = 1 但实际 total >1，则兜底重新查询 ----------
+//        if (questionPage.getSize() == 1 && questionPage.getTotal() > 1) {
+//
+//            // 当前应用 id
+//            Long appId = questionList.isEmpty()
+//                    ? null
+//                    : questionList.get(0).getAppId();
+//
+//            if (appId != null) {
+//                // 一次拉全
+//                questionList = this.lambdaQuery()
+//                        .eq(Question::getAppId, appId)
+//                        .orderByAsc(Question::getCreateTime)
+//                        .list();
+//
+//                // 👉 同步修改分页对象的 size / total / records
+//                questionPage.setRecords(questionList);
+//                questionPage.setSize(questionList.size());
+//                questionPage.setTotal(questionList.size());
+//            }
+//        }
+//
+//        // ---------- 2. 构造返回 Page<QuestionVO> ----------
+//        Page<QuestionVO> voPage = new Page<>(
+//                questionPage.getCurrent(),
+//                questionPage.getSize(),
+//                questionPage.getTotal());
+//
+//        if (CollUtil.isEmpty(questionList)) {
+//            return voPage;
+//        }
+//
+//        // ---------- 3. 转 VO ----------
+//        List<QuestionVO> voList = questionList.stream()
+//                .map(QuestionVO::objToVo)
+//                .collect(Collectors.toList());
+//
+//        // ---------- 4. 填充用户 ----------
+//        Set<Long> uidSet = questionList.stream()
+//                .map(Question::getUserId)
+//                .collect(Collectors.toSet());
+//
+//        Map<Long, List<User>> uidMap = userService.listByIds(uidSet).stream()
+//                .collect(Collectors.groupingBy(User::getId));
+//
+//        voList.forEach(vo -> {
+//            User u = Optional.ofNullable(uidMap.get(vo.getUserId()))
+//                    .map(l -> l.get(0))
+//                    .orElse(null);
+//            vo.setUser(userService.getUserVO(u));
+//        });
+//
+//        voPage.setRecords(voList);
+//        return voPage;
+//    }
+
+
 
 }

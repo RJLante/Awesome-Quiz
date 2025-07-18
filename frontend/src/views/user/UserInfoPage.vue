@@ -23,7 +23,7 @@
           :file-list="fileList"
           accept="image/*"
           list-type="picture-card"
-          @submit="handleUploadSuccess"
+          @success="handleUploadSuccess"
         >
           <template #default>
             <icon-plus />

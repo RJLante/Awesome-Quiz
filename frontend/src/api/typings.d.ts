@@ -252,6 +252,12 @@ declare namespace API {
     message?: string;
   };
 
+  type BaseResponseListQuestionVO_ = {
+    code?: number;
+    data?: QuestionVO[];
+    message?: string;
+  };
+
   type BaseResponseScoringResultVO_ = {
     code?: number;
     data?: ScoringResultVO;
@@ -261,6 +267,12 @@ declare namespace API {
   type BaseResponseString_ = {
     code?: number;
     data?: string;
+    message?: string;
+  };
+
+  type BaseResponseTaskIdVO_ = {
+    code?: number;
+    data?: TaskIdVO;
     message?: string;
   };
 
@@ -279,6 +291,12 @@ declare namespace API {
   type BaseResponseUserVO_ = {
     code?: number;
     data?: UserVO;
+    message?: string;
+  };
+
+  type BaseResponseQuestionTask_ = {
+    code?: number;
+    data: QuestionTask;
     message?: string;
   };
 
@@ -642,6 +660,18 @@ declare namespace API {
     userId?: number;
   };
 
+  interface QuestionTask {
+    id: number;
+    status: "waiting" | "running" | "succeed" | "failed";
+    progress?: number;
+    genResult?: string; // "[1,2,3]"
+    execMessage?: string;
+  }
+
+  type QuestionVOWithParsed = API.QuestionVO & {
+    parsedQ: API.QuestionContentDTO[];
+  };
+
   type ReviewRequest = {
     id?: number;
     reviewMessage?: string;
@@ -725,6 +755,10 @@ declare namespace API {
 
   type SseEmitter = {
     timeout?: number;
+  };
+
+  type TaskIdVO = {
+    taskId?: number;
   };
 
   type uploadFileUsingPOST1Params = {

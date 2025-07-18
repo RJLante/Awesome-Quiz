@@ -3,7 +3,7 @@
 import request from "@/request";
 
 /** addUser POST /api/user/add */
-export async function addUserUsingPost1(
+export async function addUserUsingPost(
   body: API.UserAddRequest,
   options?: { [key: string]: any }
 ) {
@@ -18,7 +18,7 @@ export async function addUserUsingPost1(
 }
 
 /** deleteUser POST /api/user/delete */
-export async function deleteUserUsingPost1(
+export async function deleteUserUsingPost(
   body: API.DeleteRequest,
   options?: { [key: string]: any }
 ) {

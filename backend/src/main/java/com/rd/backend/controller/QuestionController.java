@@ -3,6 +3,7 @@ package com.rd.backend.controller;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
+import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.rd.backend.annotation.AuthCheck;
 import com.rd.backend.common.BaseResponse;
@@ -13,14 +14,18 @@ import com.rd.backend.constant.UserConstant;
 import com.rd.backend.exception.BusinessException;
 import com.rd.backend.exception.ThrowUtils;
 import com.rd.backend.manager.AiManager;
+import com.rd.backend.manager.RedisLimiterManager;
 import com.rd.backend.model.dto.question.*;
 import com.rd.backend.model.entity.App;
 import com.rd.backend.model.entity.Question;
 import com.rd.backend.model.entity.User;
 import com.rd.backend.model.enums.AppTypeEnum;
 import com.rd.backend.model.vo.QuestionVO;
+import com.rd.backend.model.vo.TaskIdVO;
+import com.rd.backend.mq.QuestionMessageProducer;
 import com.rd.backend.service.AppService;
 import com.rd.backend.service.QuestionService;
+import com.rd.backend.service.QuestionTaskService;
 import com.rd.backend.service.UserService;
 import com.zhipu.oapi.service.v4.model.ModelData;
 import io.reactivex.Flowable;
@@ -36,6 +41,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 /**
  * 题目接口
@@ -62,6 +68,15 @@ public class QuestionController {
 
     @Resource
     private Scheduler vipScheduler;
+
+    @Resource
+    private RedisLimiterManager redisLimiterManager;
+
+    @Resource
+    private QuestionTaskService taskService;
+
+    @Resource
+    private QuestionMessageProducer questionMessageProducer;
 
     // region 增删改查
 
@@ -163,6 +178,17 @@ public class QuestionController {
         ThrowUtils.throwIf(question == null, ErrorCode.NOT_FOUND_ERROR);
         // 获取封装类
         return ResultUtils.success(questionService.getQuestionVO(question, request));
+    }
+
+    @PostMapping("/list/ids")
+    public BaseResponse<List<QuestionVO>> listByIds(@RequestBody List<Long> ids) {
+        ThrowUtils.throwIf(CollectionUtils.isEmpty(ids), ErrorCode.PARAMS_ERROR, "ids 不能为空");
+
+        List<QuestionVO> voList = questionService.listByIds(ids).stream()
+                .map(QuestionVO::objToVo)      // ← 复用你的工具方法
+                .collect(Collectors.toList());
+
+        return ResultUtils.success(voList);
     }
 
     /**
@@ -283,43 +309,40 @@ public class QuestionController {
             "3. 检查题目是否包含序号，若包含序号则去除序号\n" +
             "4. 返回的题目列表格式必须为 JSON 数组\n";
 
-    /**
-     * 生成题目的用户消息
-     * @param app
-     * @param questionNumber
-     * @param optionNumber
-     * @return
-     */
-    private String getGenerateQuestionUserMessage(App app, int questionNumber, int optionNumber) {
-        StringBuilder userMessage = new StringBuilder();
-        userMessage.append(app.getAppName()).append("\n");
-        userMessage.append(app.getAppDesc()).append("\n");
-        userMessage.append(AppTypeEnum.getEnumByValue(app.getAppType()).getText() + "类").append("\n");
-        userMessage.append(questionNumber).append("\n");
-        userMessage.append(optionNumber);
-        return userMessage.toString();
+
+    @PostMapping("/ai_generate/async/mq")
+    public BaseResponse<TaskIdVO> aiGenerateQuestionAsyncMq(@RequestBody AiGenerateQuestionRequest req) {
+
+        /* ---------- 1. 参数校验 ---------- */
+        ThrowUtils.throwIf(req == null, ErrorCode.PARAMS_ERROR);
+        Long appId          = req.getAppId();
+        int questionNumber  = req.getQuestionNumber();
+        int optionNumber    = req.getOptionNumber();
+        ThrowUtils.throwIf(questionNumber <= 0 || optionNumber <= 0,
+                ErrorCode.PARAMS_ERROR, "题目数或选项数非法");
+
+        App app = appService.getById(appId);
+        ThrowUtils.throwIf(app == null, ErrorCode.NOT_FOUND_ERROR, "应用不存在");
+
+        User loginUser = userService.getLoginUser();
+
+        /* ---------- 2. 限流 ---------- */
+        // 一人一把限流器（示例 QPS = 5）
+        redisLimiterManager.doRateLimit("genQuestionByAI_" + loginUser.getId());
+
+        /* ---------- 3. 写任务表，初始 status=waiting ---------- */
+        Long taskId = taskService.createTask(
+                loginUser.getId(), appId, questionNumber, optionNumber);
+
+        /* ---------- 4. 推消息到 MQ ---------- */
+        questionMessageProducer.sendMessage(String.valueOf(taskId));
+
+        /* ---------- 5. 秒回前端 ---------- */
+        TaskIdVO vo = new TaskIdVO();
+        vo.setTaskId(taskId);
+        return ResultUtils.success(vo);
     }
 
-//    @PostMapping("/ai_generate")
-//    public BaseResponse<List<QuestionContentDTO>> aiGenerateQuestion(@RequestBody AiGenerateQuestionRequest aiGenerateQuestionRequest) {
-//        ThrowUtils.throwIf(aiGenerateQuestionRequest == null, ErrorCode.PARAMS_ERROR);
-//        // 获取参数
-//        Long appId = aiGenerateQuestionRequest.getAppId();
-//        int questionNumber = aiGenerateQuestionRequest.getQuestionNumber();
-//        int optionNumber = aiGenerateQuestionRequest.getOptionNumber();
-//        App app = appService.getById(appId);
-//        ThrowUtils.throwIf(app == null, ErrorCode.NOT_FOUND_ERROR);
-//        // 封装 Prompt
-//        String userMessage = getGenerateQuestionUserMessage(app, questionNumber, optionNumber);
-//        // AI 生成
-//        String result = aiManager.doSyncUnstableRequest(GENERATE_QUESTION_SYSTEM_MESSAGE, userMessage);
-//        // 结果处理
-//        int start = result.indexOf("[");
-//        int end = result.lastIndexOf("]");
-//        String json = result.substring(start, end + 1);
-//        List<QuestionContentDTO> questionContentDTOList = JSONUtil.toList(json, QuestionContentDTO.class);
-//        return ResultUtils.success(questionContentDTOList);
-//    }
 
     @PostMapping("/ai_generate")
     public BaseResponse<List<QuestionContentDTO>> aiGenerateQuestion(@RequestBody AiGenerateQuestionRequest aiGenerateQuestionRequest) {
@@ -331,7 +354,7 @@ public class QuestionController {
         App app = appService.getById(appId);
         ThrowUtils.throwIf(app == null, ErrorCode.NOT_FOUND_ERROR);
         // 封装 Prompt
-        String userMessage = getGenerateQuestionUserMessage(app, questionNumber, optionNumber);
+        String userMessage = aiManager.getGenerateQuestionUserMessage(app, questionNumber, optionNumber);
         // AI 生成
         String result = aiManager.doSyncStableRequest(GENERATE_QUESTION_SYSTEM_MESSAGE, userMessage);
 
@@ -356,43 +379,6 @@ public class QuestionController {
         return ResultUtils.success(questionContentDTOList);
     }
 
-//    @PostMapping("/ai_generate")
-//    public BaseResponse<List<QuestionContentDTO>> aiGenerateQuestion(@RequestBody AiGenerateQuestionRequest aiGenerateQuestionRequest) {
-//        ThrowUtils.throwIf(aiGenerateQuestionRequest == null, ErrorCode.PARAMS_ERROR);
-//
-//        // 1. 获取参数
-//        Long appId = aiGenerateQuestionRequest.getAppId();
-//        int questionNumber = aiGenerateQuestionRequest.getQuestionNumber();
-//        int optionNumber = aiGenerateQuestionRequest.getOptionNumber();
-//        App app = appService.getById(appId);
-//        ThrowUtils.throwIf(app == null, ErrorCode.NOT_FOUND_ERROR);
-//
-//        // 2. 调用封装好的 AiManager，它会处理分批和上下文
-//        List<String> jsonResults = aiManager.generateQuestionsInBatches(
-//                GENERATE_QUESTION_SYSTEM_MESSAGE,
-//                app,
-//                questionNumber,
-//                optionNumber
-//        );
-//
-//        // 3. 合并和解析所有批次的结果
-//        List<QuestionContentDTO> finalQuestionList = new ArrayList<>();
-//        for (String json : jsonResults) {
-//            // 对每一批次返回的JSON数组字符串进行解析
-//            if (StrUtil.isNotBlank(json)) {
-//                List<QuestionContentDTO> batchList = JSONUtil.toList(json, QuestionContentDTO.class);
-//                finalQuestionList.addAll(batchList);
-//            }
-//        }
-//
-//        // 可选：检查最终生成的题目数量是否满足要求
-//        if (finalQuestionList.size() < questionNumber) {
-//            System.err.println("Warning: AI只生成了 " + finalQuestionList.size() + " 道题，期望 " + questionNumber + " 道。");
-//            // 根据业务需求决定是否抛出异常
-//        }
-//
-//        return ResultUtils.success(finalQuestionList);
-//    }
 
     @GetMapping("/ai_generate/sse")
     public SseEmitter aiGenerateQuestionSSE(AiGenerateQuestionRequest aiGenerateQuestionRequest) {
@@ -404,7 +390,7 @@ public class QuestionController {
         App app = appService.getById(appId);
         ThrowUtils.throwIf(app == null, ErrorCode.NOT_FOUND_ERROR);
         // 封装 Prompt
-        String userMessage = getGenerateQuestionUserMessage(app, questionNumber, optionNumber);
+        String userMessage = aiManager.getGenerateQuestionUserMessage(app, questionNumber, optionNumber);
         // 建立 SSE 连接对象，0 表示永不超时
         SseEmitter sseEmitter = new SseEmitter(0L);
         // AI 生成，SSE 流式返回
@@ -473,7 +459,7 @@ public class QuestionController {
         App app = appService.getById(appId);
         ThrowUtils.throwIf(app == null, ErrorCode.NOT_FOUND_ERROR);
         // 封装 Prompt
-        String userMessage = getGenerateQuestionUserMessage(app, questionNumber, optionNumber);
+        String userMessage = aiManager.getGenerateQuestionUserMessage(app, questionNumber, optionNumber);
         // 建立 SSE 连接对象，0 表示永不超时
         SseEmitter sseEmitter = new SseEmitter(0L);
         // AI 生成，SSE 流式返回

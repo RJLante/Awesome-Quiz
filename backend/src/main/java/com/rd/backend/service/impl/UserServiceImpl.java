@@ -75,9 +75,13 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             }
 
             // 2. 加密 & 插入数据
+//            User user = new User();
+//            user.setUserAccount(userAccount);
+//            user.setUserPassword(passwordEncoder.encode(userPassword));
+            String hashedPwd = passwordEncoder.encode(userPassword);
             User user = new User();
             user.setUserAccount(userAccount);
-            user.setUserPassword(passwordEncoder.encode(userPassword));
+            user.setUserPassword(hashedPwd);
             boolean saveResult = this.save(user);
             if (!saveResult) {
                 throw new BusinessException(ErrorCode.SYSTEM_ERROR, "注册失败，数据库错误");

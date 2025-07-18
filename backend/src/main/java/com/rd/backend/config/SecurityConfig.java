@@ -77,6 +77,10 @@ public class SecurityConfig {
                                 new AntPathRequestMatcher("/doc.html"),
                                 new AntPathRequestMatcher("/favicon.ico")
                         ).permitAll()
+                        .requestMatchers(
+                                new AntPathRequestMatcher("/api/task/**"),
+                                new AntPathRequestMatcher("/api/question/list/ids")
+                        ).permitAll()
                         .anyRequest().authenticated())
                 .userDetailsService(userDetailsService)
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)

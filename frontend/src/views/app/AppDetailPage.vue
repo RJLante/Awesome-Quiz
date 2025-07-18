@@ -39,8 +39,8 @@
               >设置评分
             </a-button>
             <a-button v-if="isMy" @click="router.push(`/add/app/${id}`)"
-              >修改应用</a-button
-            >
+              >修改应用
+            </a-button>
           </a-space>
         </a-col>
         <a-col flex="320px">
@@ -53,7 +53,14 @@
 </template>
 
 <script setup lang="ts">
-import { computed, defineProps, ref, watchEffect, withDefaults } from "vue";
+import {
+  computed,
+  defineProps,
+  ref,
+  withDefaults,
+  watch,
+  watchEffect,
+} from "vue";
 import API from "@/api";
 import { getAppVoByIdUsingGet } from "@/api/appController";
 import message from "@arco-design/web-vue/es/message";
@@ -78,6 +85,11 @@ const router = useRouter();
 const shareModelRef = ref();
 
 const shareLink = `${window.location.protocol}//${window.location.host}/app/detail/${props.id}`;
+
+// const shareLink = computed(() =>
+//   props.id ? `${location.origin}/app/detail/${props.id}` : ""
+// );
+
 const doShare = (e: Event) => {
   if (shareModelRef.value) {
     shareModelRef.value.openModel();

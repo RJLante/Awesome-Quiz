@@ -1,5 +1,6 @@
 package com.rd.backend.controller;
 
+import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.io.FileUtil;
 import com.rd.backend.exception.BusinessException;
 import com.rd.backend.common.BaseResponse;
@@ -13,6 +14,7 @@ import com.rd.backend.model.enums.FileUploadBizEnum;
 import com.rd.backend.service.UserService;
 import java.io.File;
 import java.util.Arrays;
+import java.util.Date;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
@@ -45,12 +47,11 @@ public class FileController {
      *
      * @param multipartFile
      * @param uploadFileRequest
-     * @param request
      * @return
      */
     @PostMapping("/upload")
     public BaseResponse<String> uploadFile(@RequestPart("file") MultipartFile multipartFile,
-            UploadFileRequest uploadFileRequest, HttpServletRequest request) {
+            UploadFileRequest uploadFileRequest) {
         String biz = uploadFileRequest.getBiz();
         FileUploadBizEnum fileUploadBizEnum = FileUploadBizEnum.getEnumByValue(biz);
         if (fileUploadBizEnum == null) {
@@ -60,7 +61,7 @@ public class FileController {
         User loginUser = userService.getLoginUser();
         // 文件目录：根据业务、用户来划分
         String uuid = RandomStringUtils.randomAlphanumeric(8);
-        String filename = uuid + "-" + multipartFile.getOriginalFilename();
+        String filename = uuid + "." + multipartFile.getOriginalFilename();
         String filepath = String.format("/%s/%s/%s", fileUploadBizEnum.getValue(), loginUser.getId(), filename);
         File file = null;
         try {
@@ -95,10 +96,10 @@ public class FileController {
         long fileSize = multipartFile.getSize();
         // 文件后缀
         String fileSuffix = FileUtil.getSuffix(multipartFile.getOriginalFilename());
-        final long ONE_M = 1024 * 1024L;
+        final long TWO_M = 2 * 1024 * 1024L;
         if (FileUploadBizEnum.USER_AVATAR.equals(fileUploadBizEnum)) {
-            if (fileSize > ONE_M) {
-                throw new BusinessException(ErrorCode.PARAMS_ERROR, "文件大小不能超过 1M");
+            if (fileSize > TWO_M) {
+                throw new BusinessException(ErrorCode.PARAMS_ERROR, "文件大小不能超过 2M");
             }
             if (!Arrays.asList("jpeg", "jpg", "svg", "png", "webp").contains(fileSuffix)) {
                 throw new BusinessException(ErrorCode.PARAMS_ERROR, "文件类型错误");
