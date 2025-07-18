@@ -1,9 +1,9 @@
 {
   "properties": [
     {
-      "name": "cos.client.accessKey",
+      "name": "cos.client.secretId",
       "type": "java.lang.String",
-      "description": "Description for cos.client.accessKey."
+      "description": "SecretId for Tencent COS"
     },
     {
       "name": "cos.client.secretKey",

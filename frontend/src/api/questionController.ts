@@ -53,49 +53,6 @@ export async function aiGenerateQuestionAsyncMqUsingPost(
   );
 }
 
-/**
- * getQuestionTaskUsingGet  GET /api/task/{id}
- * - path 采用模板字符串拼接
- * - 返回值类型：BaseResponseQuestionTask_
- */
-export async function getQuestionTaskUsingGet(
-  // 叠加生成的 Param 类型（这里只需 id）
-  params: { id: number },
-  options?: { [key: string]: any }
-) {
-  return request<API.BaseResponseQuestionTask_>(
-    `/api/task/${params.id}`,
-    {
-      method: "GET",
-      ...(options || {})
-    }
-  );
-}
-
-/**
- * listQuestionByIdsUsingPost  POST /api/question/list/ids
- * - Body 直接传 id 数组
- * - 返回值类型：BaseResponseListQuestionVO_
- */
-export async function listQuestionByIdsUsingPost(
-  body: number[],
-  options?: { [key: string]: any }
-) {
-  return request<API.BaseResponseListQuestionVO_>(
-    "/api/question/list/ids",
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      data: body,
-      ...(options || {})
-    }
-  );
-}
-
-
-
 /** aiGenerateQuestionSSE GET /api/question/ai_generate/sse */
 export async function aiGenerateQuestionSseUsingGet(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
@@ -167,6 +124,21 @@ export async function getQuestionVoByIdUsingGet(
     params: {
       ...params,
     },
+    ...(options || {}),
+  });
+}
+
+/** listByIds POST /api/question/list/ids */
+export async function listByIdsUsingPost(
+  body: number[],
+  options?: { [key: string]: any }
+) {
+  return request<API.BaseResponseListQuestionVO_>("/api/question/list/ids", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    data: body,
     ...(options || {}),
   });
 }

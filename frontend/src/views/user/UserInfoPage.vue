@@ -70,12 +70,19 @@ const fileList = ref(
     ? [{ url: form.userAvatar, name: "avatar", status: "done" }]
     : []
 );
-const handleUploadSuccess = (response: API.BaseResponseString_) => {
-  if (response.code === 0) {
-    form.userAvatar = response.data;
+// Arco Upload 在 success 回调中传入 FileItem，需要从其中取 response
+const handleUploadSuccess = (file: {
+  response?: API.BaseResponseString_;
+  url?: string;
+}) => {
+  const res = file.response;
+  if (res && res.code === 0) {
+    form.userAvatar = res.data;
+    // 更新上传列表中的地址，方便预览
+    file.url = res.data;
     Message.success("上传成功");
   } else {
-    Message.error(response.message || "上传失败");
+    Message.error(res?.message || "上传失败");
   }
 };
 

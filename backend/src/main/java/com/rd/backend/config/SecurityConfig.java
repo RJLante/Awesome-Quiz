@@ -79,7 +79,8 @@ public class SecurityConfig {
                         ).permitAll()
                         .requestMatchers(
                                 new AntPathRequestMatcher("/api/task/**"),
-                                new AntPathRequestMatcher("/api/question/list/ids")
+                                new AntPathRequestMatcher("/api/question/list/ids"),
+                                new AntPathRequestMatcher("/api/app/list/page/vo")
                         ).permitAll()
                         .anyRequest().authenticated())
                 .userDetailsService(userDetailsService)

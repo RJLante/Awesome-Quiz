@@ -150,6 +150,12 @@ declare namespace API {
     message?: string;
   };
 
+  type BaseResponseListQuestionVO_ = {
+    code?: number;
+    data?: QuestionVO[];
+    message?: string;
+  };
+
   type BaseResponseLoginTokenVO_ = {
     code?: number;
     data?: LoginTokenVO;
@@ -246,15 +252,15 @@ declare namespace API {
     message?: string;
   };
 
-  type BaseResponseQuestionVO_ = {
+  type BaseResponseQuestionTask_ = {
     code?: number;
-    data?: QuestionVO;
+    data?: QuestionTask;
     message?: string;
   };
 
-  type BaseResponseListQuestionVO_ = {
+  type BaseResponseQuestionVO_ = {
     code?: number;
-    data?: QuestionVO[];
+    data?: QuestionVO;
     message?: string;
   };
 
@@ -294,12 +300,6 @@ declare namespace API {
     message?: string;
   };
 
-  type BaseResponseQuestionTask_ = {
-    code?: number;
-    data: QuestionTask;
-    message?: string;
-  };
-
   type DeleteRequest = {
     id?: number;
   };
@@ -327,6 +327,11 @@ declare namespace API {
   type getScoringResultVOByIdUsingGET1Params = {
     /** id */
     id?: number;
+  };
+
+  type getTaskUsingGET1Params = {
+    /** id */
+    id: number;
   };
 
   type getUserAnswerVOByIdUsingGET1Params = {
@@ -645,6 +650,21 @@ declare namespace API {
     userId?: number;
   };
 
+  type QuestionTask = {
+    appId?: number;
+    createTime?: string;
+    execMessage?: string;
+    genResult?: string;
+    id?: number;
+    isDelete?: number;
+    optionNum?: number;
+    progress?: number;
+    questionNum?: number;
+    status?: string;
+    updateTime?: string;
+    userId?: number;
+  };
+
   type QuestionUpdateRequest = {
     id?: number;
     questionContent?: QuestionContentDTO[];
@@ -658,18 +678,6 @@ declare namespace API {
     updateTime?: string;
     user?: UserVO;
     userId?: number;
-  };
-
-  interface QuestionTask {
-    id: number;
-    status: "waiting" | "running" | "succeed" | "failed";
-    progress?: number;
-    genResult?: string; // "[1,2,3]"
-    execMessage?: string;
-  }
-
-  type QuestionVOWithParsed = API.QuestionVO & {
-    parsedQ: API.QuestionContentDTO[];
   };
 
   type ReviewRequest = {

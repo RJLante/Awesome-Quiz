@@ -96,7 +96,7 @@ mybatis-plus:
 # todo 需替换配置
 cos:
   client:
-    accessKey: xxx
+    secretId: xxx
     secretKey: xxx
     region: xxx
     bucket: xxx

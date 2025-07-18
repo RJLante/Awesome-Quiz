@@ -72,11 +72,11 @@ import API from "@/api";
 import {
   aiGenerateQuestionUsingPost,
   aiGenerateQuestionAsyncMqUsingPost,
-  getQuestionTaskUsingGet,
-  listQuestionByIdsUsingPost,
+  listQuestionByPageUsingPost,
 } from "@/api/questionController";
 import message from "@arco-design/web-vue/es/message";
 import { useAuthStore } from "@/store/auth";
+import { getTaskUsingGet } from "@/api/taskController";
 
 interface Props {
   appId: string;
@@ -137,23 +137,16 @@ const handleSubmit = async () => {
 
 async function handleAsyncSubmit() {
   if (!props.appId) return;
-
-  // 1. 标记正在提交（旧版变量名 submitting）
   submitting.value = true;
-  // 如果你有单独的“进度条可见”开关，也一并打开
   progressVisible.value = true;
 
   try {
-    // 2. 提交任务 —— 保持和旧版一样的签名，不做额外的 Number() 转换
     const res = await aiGenerateQuestionAsyncMqUsingPost({
       appId: props.appId as any,
       ...form,
     });
-
-    // 3. 立即恢复 “提交中” 状态
     submitting.value = false;
 
-    // 4. 校验返回值
     if (res.data.code !== 0 || !res.data.data) {
       message.error("提交失败：" + res.data.message);
       progressVisible.value = false;
@@ -162,15 +155,12 @@ async function handleAsyncSubmit() {
 
     const taskId = res.data.data.taskId;
     message.success(`已提交，任务号 #${taskId}`);
-    // 关闭弹窗（如果有的话）
     handleCancel?.();
-
-    // 重置进度
     progress.value = 0;
 
-    // 5. 启动轮询
+    // 启动轮询
     timer = window.setInterval(async () => {
-      const r = await getQuestionTaskUsingGet({ id: taskId });
+      const r = await getTaskUsingGet({ id: taskId });
       if (r.data.code !== 0 || !r.data.data) return;
 
       const task = r.data.data;
@@ -186,7 +176,7 @@ async function handleAsyncSubmit() {
         // 解析结果 ID 列表
         const ids: number[] = JSON.parse(task.genResult ?? "[]");
         if (ids.length > 0) {
-          const qRes = await listQuestionByIdsUsingPost(ids);
+          const qRes = await listQuestionByPageUsingPost(ids);
           if (qRes.data.code === 0 && qRes.data.data) {
             const dtoList: API.QuestionContentDTO[] = qRes.data.data.flatMap(
               (q) => q.questionContent ?? []
