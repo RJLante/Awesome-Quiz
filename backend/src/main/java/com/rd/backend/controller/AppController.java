@@ -24,6 +24,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.util.Date;
+import java.util.Objects;
 
 /**
  * 应用接口
@@ -62,6 +63,9 @@ public class AppController {
         User loginUser = userService.getLoginUser();
         app.setUserId(loginUser.getId());
         app.setReviewStatus(ReviewStatusEnum.REVIEWING.getValue());
+        if (Objects.equals(loginUser.getUserRole(), "admin")) {
+            app.setReviewStatus(ReviewStatusEnum.PASS.getValue());
+        }
         if (StrUtil.isBlank(app.getAppIcon())) {
             app.setAppIcon("https://awesomequiz-1345673117.cos.ap-shanghai.myqcloud.com/app_icon/1939353106849185794/9TZ28Lig.background.jpg");
         }
@@ -235,6 +239,9 @@ public class AppController {
         }
         // 重置审核状态
         app.setReviewStatus(ReviewStatusEnum.REVIEWING.getValue());
+        if (Objects.equals(loginUser.getUserRole(), "admin")) {
+            app.setReviewStatus(ReviewStatusEnum.PASS.getValue());
+        }
 
         // 操作数据库
         boolean result = appService.updateById(app);

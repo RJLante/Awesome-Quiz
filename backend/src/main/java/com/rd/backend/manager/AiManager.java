@@ -2,6 +2,7 @@ package com.rd.backend.manager;
 
 
 import cn.hutool.core.util.StrUtil;
+import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import cn.hutool.json.JSONUtil;
 import com.rd.backend.common.ErrorCode;
 import com.rd.backend.exception.BusinessException;
@@ -13,6 +14,7 @@ import com.zhipu.oapi.Constants;
 import com.zhipu.oapi.service.v4.model.*;
 import io.reactivex.Flowable;
 import org.springframework.stereotype.Component;
+import java.util.concurrent.ThreadLocalRandom;
 
 import javax.annotation.Resource;
 import java.util.ArrayList;
@@ -69,6 +71,15 @@ public class AiManager {
         String format;
         if (appType == AppTypeEnum.SCORE.getValue()) {
             format = "[{\\\"options\\\":[{\\\"value\\\":\\\"选项内容\\\",\\\"score\\\":0,\\\"key\\\":\\\"A\\\"}],\\\"title\\\":\\\"题目标题\\\"}]";
+            base += "2. 严格按照下面的 json 格式输出题目和选项\n" +
+                    "```\n" +
+                    format + "\n" +
+                    "```\n" +
+                    "title 是题目，options 是选项，每个选项的 key 按照英文字母序（比如 A、B、C、D）以此类推，value 是选项内容\n" +
+                    "3. 每道题必须只有一个正确答案，正确答案的score为1，其余为0，正确答案的选项位置要随机\n" +
+                    "4. 检查题目是否包含序号，若包含序号则去除序号\n" +
+                    "5. 返回的题目列表格式必须为 JSON 数组\n";
+            return base;
         } else {
             format = "[{\\\"options\\\":[{\\\"value\\\":\\\"选项内容\\\",\\\"result\\\":\\\"属性\\\",\\\"key\\\":\\\"A\\\"}],\\\"title\\\":\\\"题目标题\\\"}]";
         }
@@ -246,7 +257,32 @@ public class AiManager {
             throw new BusinessException(ErrorCode.SYSTEM_ERROR, "AI 生成格式错误");
         }
         String json = content.substring(start, end + 1);
-        return JSONUtil.toList(json, QuestionContentDTO.class);
+//        return JSONUtil.toList(json, QuestionContentDTO.class);
+        List<QuestionContentDTO> list = JSONUtil.toList(json, QuestionContentDTO.class);
+        ensureScoreQuestionHasCorrectAnswer(app, list);
+        return list;
+    }
+
+    /**
+     * Ensure score type questions contain exactly one correct option.
+     */
+    public void ensureScoreQuestionHasCorrectAnswer(App app, List<QuestionContentDTO> list) {
+        if (app == null || app.getAppType() != AppTypeEnum.SCORE.getValue() || CollectionUtils.isEmpty(list)) {
+            return;
+        }
+        for (QuestionContentDTO item : list) {
+            List<QuestionContentDTO.Option> options = item.getOptions();
+            if (CollectionUtils.isEmpty(options)) {
+                continue;
+            }
+            // 设置所有答案得分为0
+            for (QuestionContentDTO.Option option : options) {
+                option.setScore(0);
+            }
+            // 随机设置一个正确答案
+            int correctIndex = ThreadLocalRandom.current().nextInt(options.size());
+            options.get(correctIndex).setScore(1);
+        }
     }
 
     /**

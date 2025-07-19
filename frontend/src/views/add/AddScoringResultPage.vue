@@ -21,9 +21,10 @@
         <a-input v-model="form.resultDesc" placeholder="请输入结果描述" />
       </a-form-item>
       <a-form-item field="resultPicture" label="结果图标">
-        <a-input
-          v-model="form.resultPicture"
-          placeholder="请输入结果图标地址"
+        <PictureUploader
+          biz="scoring_result_picture"
+          :value="form.resultPicture"
+          :onChange="(value) => (form.resultPicture = value)"
         />
       </a-form-item>
       <a-form-item field="resultProp" label="结果集">
@@ -41,9 +42,17 @@
         />
       </a-form-item>
       <a-form-item>
-        <a-button type="primary" html-type="submit" style="width: 120px">
-          提交
-        </a-button>
+        <a-space>
+          <a-button type="primary" html-type="submit" style="width: 120px">
+            提交
+          </a-button>
+          <a-button
+            @click="router.push(`/add/question/${props.appId}`)"
+            style="width: 120px"
+          >
+            设置题目
+          </a-button>
+        </a-space>
       </a-form-item>
     </a-form>
     <h2 style="margin-bottom: 32px">评分管理</h2>
@@ -61,6 +70,7 @@ import {
   editScoringResultUsingPost,
 } from "@/api/scoringResultController";
 import message from "@arco-design/web-vue/es/message";
+import PictureUploader from "@/components/PictureUploader.vue";
 
 interface Props {
   appId: string;

@@ -1,5 +1,6 @@
 package com.rd.backend.controller;
 
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.rd.backend.annotation.AuthCheck;
@@ -66,6 +67,9 @@ public class ScoringResultController {
         // 填充默认值
         User loginUser = userService.getLoginUser();
         scoringResult.setUserId(loginUser.getId());
+        if (StrUtil.isBlank(scoringResult.getResultPicture())) {
+            scoringResult.setResultPicture("https://awesomequiz-1345673117.cos.ap-shanghai.myqcloud.com/user_avatar/1939353106849185794/68JIpfLw.%E6%B3%A2%E5%A5%871.jpg");
+        }
         // 写入数据库
         boolean result = scoringResultService.save(scoringResult);
         ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);

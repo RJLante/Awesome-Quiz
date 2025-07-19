@@ -385,31 +385,33 @@ public class QuestionController {
         int optionNumber = aiGenerateQuestionRequest.getOptionNumber();
         App app = appService.getById(appId);
         ThrowUtils.throwIf(app == null, ErrorCode.NOT_FOUND_ERROR);
-        // 封装 Prompt
-        String userMessage = aiManager.getGenerateQuestionUserMessage(app, questionNumber, optionNumber);
-        // AI 生成
-//        String result = aiManager.doSyncStableRequest(GENERATE_QUESTION_SYSTEM_MESSAGE, userMessage);
-        String systemMessage = getGenerateQuestionSystemMessage(app.getAppType());
-        String result = aiManager.doSyncStableRequest(systemMessage, userMessage);
-
-        // 1. 将AI返回的完整字符串解析为JSON对象
-        JSONObject resultObj = JSONUtil.parseObj(result);
-
-        // 2. 安全地提取"message.content"字段的字符串
-        // 使用 getByPath 可以优雅地处理嵌套路径，避免空指针
-        String content = resultObj.getByPath("message.content", String.class);
-
-        ThrowUtils.throwIf(StrUtil.isBlank(content), ErrorCode.SYSTEM_ERROR, "AI生成内容为空");
-
-        // 3. 清理content字符串，移除Markdown代码块标记和首尾空白
-        int start = content.indexOf("[");
-        int end = content.lastIndexOf("]");
-        if (start == -1 || end == -1) {
-            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "AI生成内容格式错误，未找到有效的JSON数组");
-        }
-        String json = content.substring(start, end + 1);
-        // 4. 将清理后的字符串解析为List
-        List<QuestionContentDTO> questionContentDTOList = JSONUtil.toList(json, QuestionContentDTO.class);
+//        // 封装 Prompt
+//        String userMessage = aiManager.getGenerateQuestionUserMessage(app, questionNumber, optionNumber);
+//        // AI 生成
+////        String result = aiManager.doSyncStableRequest(GENERATE_QUESTION_SYSTEM_MESSAGE, userMessage);
+//        String systemMessage = getGenerateQuestionSystemMessage(app.getAppType());
+//        String result = aiManager.doSyncStableRequest(systemMessage, userMessage);
+//
+//        // 1. 将AI返回的完整字符串解析为JSON对象
+//        JSONObject resultObj = JSONUtil.parseObj(result);
+//
+//        // 2. 安全地提取"message.content"字段的字符串
+//        // 使用 getByPath 可以优雅地处理嵌套路径，避免空指针
+//        String content = resultObj.getByPath("message.content", String.class);
+//
+//        ThrowUtils.throwIf(StrUtil.isBlank(content), ErrorCode.SYSTEM_ERROR, "AI生成内容为空");
+//
+//        // 3. 清理content字符串，移除Markdown代码块标记和首尾空白
+//        int start = content.indexOf("[");
+//        int end = content.lastIndexOf("]");
+//        if (start == -1 || end == -1) {
+//            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "AI生成内容格式错误，未找到有效的JSON数组");
+//        }
+//        String json = content.substring(start, end + 1);
+//        // 4. 将清理后的字符串解析为List
+//        List<QuestionContentDTO> questionContentDTOList = JSONUtil.toList(json, QuestionContentDTO.class);
+        List<QuestionContentDTO> questionContentDTOList =
+                aiManager.generateQuestionList(app, questionNumber, optionNumber);
         return ResultUtils.success(questionContentDTOList);
     }
 
@@ -468,8 +470,14 @@ public class QuestionController {
                         counter.addAndGet(-1);
                         if (counter.get() == 0) {
                             // 可以拼接题目，并且通过 SSE 返回给前端
-                            sseEmitter.send(JSONUtil.toJsonStr(messageBuilder.toString()));
+//                            sseEmitter.send(JSONUtil.toJsonStr(messageBuilder.toString()));
                             // 重置，准备拼接下一道题
+                            String questionJson = messageBuilder.toString();
+                            QuestionContentDTO dto = JSONUtil.toBean(questionJson, QuestionContentDTO.class);
+                            List<QuestionContentDTO> list = new ArrayList<>();
+                            list.add(dto);
+                            aiManager.ensureScoreQuestionHasCorrectAnswer(app, list);
+                            sseEmitter.send(JSONUtil.toJsonStr(list.get(0)));
                             messageBuilder.setLength(0);
                         }
                     }

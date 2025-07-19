@@ -1,7 +1,7 @@
 <template>
   <div id="userInfoPage">
-    <h2 class="title">个人中心</h2>
-    <a-form :model="form" :style="{ maxWidth: '720px' }" @submit="handleSubmit">
+    <a-form :model="form" :style="{ maxWidth: '600px' }" @submit="handleSubmit">
+      <h2 class="title">个人中心</h2>
       <a-form-item field="userName" label="昵称">
         <a-input v-model="form.userName" placeholder="请输入昵称" />
       </a-form-item>
@@ -11,19 +11,11 @@
       </a-form-item>
 
       <a-form-item field="userAvatar" label="头像">
-        <a-upload
-          :action="uploadUrl"
-          :data="{ biz: 'user_avatar' }"
-          :headers="{ Authorization: `Bearer ${authStore.token}` }"
-          :file-list="fileList"
-          accept="image/*"
-          list-type="picture-card"
-          @success="handleUploadSuccess"
-        >
-          <template #default>
-            <icon-plus />
-          </template>
-        </a-upload>
+        <PictureUploader
+          biz="user_avatar"
+          :value="form.userAvatar"
+          :onChange="(value) => (form.userAvatar = value)"
+        />
       </a-form-item>
 
       <a-form-item>
@@ -44,6 +36,7 @@ import { useLoginUserStore } from "@/store/userStore";
 import { updateMyUserUsingPost } from "@/api/userController";
 import API from "@/api";
 import router from "@/router";
+import PictureUploader from "@/components/PictureUploader.vue";
 
 const authStore = useAuthStore();
 const loginUserStore = useLoginUserStore();
@@ -55,31 +48,6 @@ const form = reactive<API.UserUpdateMyRequest>({
   userProfile: origin.userProfile,
   userAvatar: origin.userAvatar,
 });
-
-// 头像上传
-const uploadUrl = `${
-  process.env.VUE_APP_API_BASE || "http://localhost:8101"
-}/api/file/upload`;
-const fileList = ref(
-  form.userAvatar
-    ? [{ url: form.userAvatar, name: "avatar", status: "done" }]
-    : []
-);
-// Arco Upload 在 success 回调中传入 FileItem，需要从其中取 response
-const handleUploadSuccess = (file: {
-  response?: API.BaseResponseString_;
-  url?: string;
-}) => {
-  const res = file.response;
-  if (res && res.code === 0) {
-    form.userAvatar = res.data;
-    // 更新上传列表中的地址，方便预览
-    file.url = res.data;
-    Message.success("上传成功");
-  } else {
-    Message.error(res?.message || "上传失败");
-  }
-};
 
 // 提交
 const handleSubmit = async () => {
@@ -102,11 +70,3 @@ const reset = () => {
   Object.assign(form, origin);
 };
 </script>
-
-<style scoped>
-#userInfoPage .title {
-  text-align: left;
-  margin-left: 105px;
-  margin-bottom: 32px;
-}
-</style>

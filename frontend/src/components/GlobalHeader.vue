@@ -92,7 +92,10 @@ const authStore = useAuthStore();
 const handleSelect = (key: string) => {
   switch (key) {
     case "info":
-      router.push("/user/info");
+      router.push({
+        name: "个人中心",
+        params: { id: loginUserStore.loginUser.id },
+      });
       break;
     case "logout":
       authStore.logout();

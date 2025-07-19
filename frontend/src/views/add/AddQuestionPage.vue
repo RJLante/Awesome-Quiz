@@ -124,6 +124,9 @@
           <a-button @click="addQuestion(questionContent.length)">
             添加题目
           </a-button>
+          <a-button @click="router.push(`/app/detail/${props.appId}`)">
+            返回
+          </a-button>
         </a-space>
       </a-form-item>
     </a-form>
@@ -292,9 +295,9 @@ const handleSubmit = async () => {
     });
   }
   if (res.data.code === 0) {
-    message.success("操作成功，即将跳转到评分设置页");
+    message.success("操作成功，即将跳转到应用详情页");
     setTimeout(() => {
-      router.push(`/add/scoring_result/${props.appId}`);
+      router.push(`/app/detail/${props.appId}`);
     }, 1000);
   } else {
     message.error("操作失败，" + res.data.message);
