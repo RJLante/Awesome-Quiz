@@ -769,7 +769,7 @@ declare namespace API {
     taskId?: number;
   };
 
-  type uploadFileUsingPOST1Params = {
+  type uploadFileUsingPOSTParams = {
     biz?: string;
   };
 

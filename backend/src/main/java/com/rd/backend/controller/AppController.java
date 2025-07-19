@@ -1,5 +1,6 @@
 package com.rd.backend.controller;
 
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.rd.backend.annotation.AuthCheck;
 import com.rd.backend.common.*;
@@ -61,6 +62,9 @@ public class AppController {
         User loginUser = userService.getLoginUser();
         app.setUserId(loginUser.getId());
         app.setReviewStatus(ReviewStatusEnum.REVIEWING.getValue());
+        if (StrUtil.isBlank(app.getAppIcon())) {
+            app.setAppIcon("https://awesomequiz-1345673117.cos.ap-shanghai.myqcloud.com/app_icon/1939353106849185794/9TZ28Lig.background.jpg");
+        }
         // 写入数据库
         boolean result = appService.save(app);
         ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);

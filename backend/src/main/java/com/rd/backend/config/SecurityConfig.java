@@ -78,9 +78,10 @@ public class SecurityConfig {
                                 new AntPathRequestMatcher("/favicon.ico")
                         ).permitAll()
                         .requestMatchers(
-                                new AntPathRequestMatcher("/api/task/**"),
-                                new AntPathRequestMatcher("/api/question/list/ids"),
-                                new AntPathRequestMatcher("/api/app/list/page/vo")
+                                new AntPathRequestMatcher("/task/**"),
+                                new AntPathRequestMatcher("/question/list/ids"),
+                                new AntPathRequestMatcher("/app/list/page/vo"),
+                                new AntPathRequestMatcher("/app/get/vo")
                         ).permitAll()
                         .anyRequest().authenticated())
                 .userDetailsService(userDetailsService)

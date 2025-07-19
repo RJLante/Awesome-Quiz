@@ -44,6 +44,8 @@ import ShareModel from "@/components/ShareModel.vue";
 const initSearchParams = {
   current: 1,
   pageSize: 12,
+  sortField: "createTime",
+  sortOrder: "descend",
 };
 
 const searchParams = ref<API.AppQueryRequest>({

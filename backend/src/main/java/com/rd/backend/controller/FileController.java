@@ -2,6 +2,7 @@ package com.rd.backend.controller;
 
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.io.FileUtil;
+import com.rd.backend.config.CosClientConfig;
 import com.rd.backend.exception.BusinessException;
 import com.rd.backend.common.BaseResponse;
 import com.rd.backend.common.ErrorCode;
@@ -42,6 +43,9 @@ public class FileController {
     @Resource
     private CosManager cosManager;
 
+    @Resource
+    private CosClientConfig cosClientConfig;
+
     /**
      * 文件上传
      *
@@ -70,7 +74,7 @@ public class FileController {
             multipartFile.transferTo(file);
             cosManager.putObject(filepath, file);
             // 返回可访问地址
-            return ResultUtils.success(FileConstant.COS_HOST + filepath);
+            return ResultUtils.success(cosClientConfig.getHost() + "/" + filepath);
         } catch (Exception e) {
             log.error("file upload error, filepath = " + filepath, e);
             throw new BusinessException(ErrorCode.SYSTEM_ERROR, "上传失败");

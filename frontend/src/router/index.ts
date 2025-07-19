@@ -12,6 +12,7 @@ router.beforeEach(async (to) => {
 
   // 白名单
   if (["/user/login", "/user/register"].includes(to.path)) return true;
+  if (to.path === "/" || to.path.startsWith("/app/detail")) return true;
 
   // ① 没 token：跳登录
   if (!auth.token) return "/user/login";
@@ -22,6 +23,19 @@ router.beforeEach(async (to) => {
   // ③ 拉完仍没有 userInfo（token 已过期）
   if (!auth.userInfo) return "/user/login";
 
+  // ④ 个人中心权限校验：仅本人或管理员可访问
+  if (to.path.startsWith("/user/info")) {
+    const targetId = String(to.params.id ?? "");
+    const loginUser = auth.userInfo;
+    if (
+      targetId &&
+      loginUser &&
+      loginUser.userRole !== "admin" &&
+      String(loginUser.id) !== targetId
+    ) {
+      return "/noAuth";
+    }
+  }
   return true;
 });
 

@@ -3,8 +3,8 @@
     <a-layout style="height: 100vh">
       <a-layout-header class="header">
         <a-space>
-          <img class="logo" src="../assets/logo.png" />
-          <div>鱼答答 AI 答题应用平台</div>
+          <img class="logo" src="../assets/test.png" />
+          <div>Awesome-Quiz</div>
         </a-space>
       </a-layout-header>
       <a-layout-content class="content">

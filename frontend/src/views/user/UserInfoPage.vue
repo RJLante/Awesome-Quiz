@@ -1,12 +1,7 @@
 <template>
   <div id="userInfoPage">
-    <h2 style="margin-bottom: 16px">个人中心</h2>
-
-    <a-form
-      :model="form"
-      :style="{ maxWidth: '480px', margin: '0 auto' }"
-      @submit="handleSubmit"
-    >
+    <h2 class="title">个人中心</h2>
+    <a-form :model="form" :style="{ maxWidth: '720px' }" @submit="handleSubmit">
       <a-form-item field="userName" label="昵称">
         <a-input v-model="form.userName" placeholder="请输入昵称" />
       </a-form-item>
@@ -107,3 +102,11 @@ const reset = () => {
   Object.assign(form, origin);
 };
 </script>
+
+<style scoped>
+#userInfoPage .title {
+  text-align: left;
+  margin-left: 105px;
+  margin-bottom: 32px;
+}
+</style>

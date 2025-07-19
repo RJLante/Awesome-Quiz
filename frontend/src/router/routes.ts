@@ -176,15 +176,16 @@ export const routes: Array<RouteRecordRaw> = [
         component: UserRegisterPage,
         meta: { hideInMenu: true },
       },
-      {
-        path: "/user/info",
-        name: "个人中心",
-        component: UserInfoPage,
-        meta: { requiresAuth: true, hideInMenu: true },
-      },
     ],
     meta: {
       hideInMenu: true,
     },
+  },
+  {
+    path: "/user/info/:id",
+    name: "个人中心",
+    component: UserInfoPage,
+    props: true,
+    meta: { hideInMenu: true },
   },
 ];

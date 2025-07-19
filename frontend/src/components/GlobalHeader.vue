@@ -23,19 +23,24 @@
     </a-col>
     <a-col flex="100px">
       <div v-if="loginUserStore.loginUser.id">
-        <a-dropdown @select="handleSelect">
-          <!-- 触发按钮：只负责展开下拉，不再直接路由跳转 -->
-          <a-button type="primary" style="margin-right: 20px">
-            {{ loginUserStore.loginUser.userName || "无名" }}
-            <icon-down class="icon-down" />
-          </a-button>
+        <a-space>
+          <a-avatar>
+            <img alt="avatar" :src="loginUserStore.loginUser.userAvatar" />
+          </a-avatar>
+          <a-dropdown @select="handleSelect">
+            <!-- 触发按钮：只负责展开下拉，不再直接路由跳转 -->
+            <a-button style="margin-right: 20px">
+              {{ loginUserStore.loginUser.userName || "无名" }}
+              <icon-down class="icon-down" />
+            </a-button>
 
-          <!-- 下拉内容 -->
-          <template #content>
-            <a-doption :value="'info'">个人中心</a-doption>
-            <a-doption :value="'logout'">退出登录</a-doption>
-          </template>
-        </a-dropdown>
+            <!-- 下拉内容 -->
+            <template #content>
+              <a-doption :value="'info'">个人中心</a-doption>
+              <a-doption :value="'logout'">退出登录</a-doption>
+            </template>
+          </a-dropdown>
+        </a-space>
       </div>
       <div v-else>
         <a-button type="primary" href="/user/login">登录</a-button>
@@ -62,17 +67,6 @@ router.afterEach((to) => {
 });
 
 /** 顶部可见菜单（运行时读取，彻底避开循环依赖） */
-// const visibleRoutes = computed<RouteRecordRaw[]>(() =>
-//   router.getRoutes().filter((item) => {
-//     // 只展示顶级、已命名、未隐藏的路由
-//     if (!item.name || item.children?.length || item.meta?.hideInMenu) {
-//       return false;
-//     }
-//     // 权限控制
-//     return checkAccess(loginUserStore.loginUser, item.meta?.access as string);
-//   })
-// );
-
 const visibleRoutes = computed<RouteRecordRaw[]>(() => {
   const list = router.getRoutes().filter((item) => {
     if (!item.name || item.children?.length || item.meta?.hideInMenu) {
@@ -102,13 +96,12 @@ const handleSelect = (key: string) => {
       break;
     case "logout":
       authStore.logout();
-      router.replace("/user/login");
+      router.push({
+        name: "个人中心",
+        params: { id: loginUserStore.loginUser.id },
+      });
       break;
   }
-};
-const handleLogout = () => {
-  authStore.logout();
-  router.replace("/user/login");
 };
 </script>
 

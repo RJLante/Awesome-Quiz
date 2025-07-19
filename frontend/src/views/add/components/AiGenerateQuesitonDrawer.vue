@@ -72,7 +72,7 @@ import API from "@/api";
 import {
   aiGenerateQuestionUsingPost,
   aiGenerateQuestionAsyncMqUsingPost,
-  listQuestionByPageUsingPost,
+  listByIdsUsingPost,
 } from "@/api/questionController";
 import message from "@arco-design/web-vue/es/message";
 import { useAuthStore } from "@/store/auth";
@@ -176,7 +176,7 @@ async function handleAsyncSubmit() {
         // 解析结果 ID 列表
         const ids: number[] = JSON.parse(task.genResult ?? "[]");
         if (ids.length > 0) {
-          const qRes = await listQuestionByPageUsingPost(ids);
+          const qRes = await listByIdsUsingPost(ids);
           if (qRes.data.code === 0 && qRes.data.data) {
             const dtoList: API.QuestionContentDTO[] = qRes.data.data.flatMap(
               (q) => q.questionContent ?? []

@@ -90,6 +90,8 @@ const formSearchParams = ref<API.UserAnswerQueryRequest>({});
 const initSearchParams = {
   current: 1,
   pageSize: 10,
+  sortField: "createTime",
+  sortOrder: "descend",
 };
 
 const searchParams = ref<API.UserAnswerQueryRequest>({

@@ -1,6 +1,6 @@
 <template>
   <div id="app">
-    <template v-if="route.path.startsWith('/user')">
+    <template v-if="isUserLayout">
       <router-view />
     </template>
     <template v-else>
@@ -12,9 +12,13 @@
 <script setup lang="ts">
 import BasicLayout from "@/layouts/BasicLayout.vue";
 import { useRoute } from "vue-router";
-import { onMounted } from "vue";
+import { onMounted, computed } from "vue";
 
 const route = useRoute();
+const userLayoutPaths = ["/user/login", "/user/register"];
+const isUserLayout = computed(() =>
+  userLayoutPaths.some((path) => route.path.startsWith(path))
+);
 
 /**
  * 全局初始化函数，有全局单次调用的代码，都可以写到这里

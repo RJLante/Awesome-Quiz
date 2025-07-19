@@ -292,10 +292,10 @@ const handleSubmit = async () => {
     });
   }
   if (res.data.code === 0) {
-    message.success("操作成功，即将跳转到应用详情页");
+    message.success("操作成功，即将跳转到评分设置页");
     setTimeout(() => {
-      router.push(`/app/detail/${props.appId}`);
-    }, 3000);
+      router.push(`/add/scoring_result/${props.appId}`);
+    }, 1000);
   } else {
     message.error("操作失败，" + res.data.message);
   }

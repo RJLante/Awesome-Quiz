@@ -47,6 +47,7 @@ public class AuthController {
 
         String token = jwtUtil.generateToken(req.getUserAccount());
         LoginUserVO userInfo = userService.getLoginUserVO(req.getUserAccount());
+        userInfo.setUserAvatar("");
 
         return ResultUtils.success(new LoginTokenVO(token, userInfo));
     }
