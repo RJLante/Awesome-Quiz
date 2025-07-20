@@ -432,7 +432,8 @@ public class QuestionController {
         // AI 生成，SSE 流式返回
 //        Flowable<ModelData> modelDataFlowable = aiManager.doStreamRequest(GENERATE_QUESTION_SYSTEM_MESSAGE, userMessage, null);
         String systemMessage = getGenerateQuestionSystemMessage(app.getAppType());
-        Flowable<ModelData> modelDataFlowable = aiManager.doStreamRequest(systemMessage, userMessage, null);
+//        Flowable<ModelData> modelDataFlowable = aiManager.doStreamRequest(systemMessage, userMessage, null);
+        Flowable<ModelData> modelDataFlowable = aiManager.doStreamStableRequest(systemMessage, userMessage);
         // 左括号计数器，除了默认值外，当回归为 0 时，表示左括号等于右括号，可以截取
         AtomicInteger counter = new AtomicInteger(0);
         // 拼接完整题目
@@ -474,11 +475,10 @@ public class QuestionController {
                             // 重置，准备拼接下一道题
                             String questionJson = messageBuilder.toString();
                             QuestionContentDTO dto = JSONUtil.toBean(questionJson, QuestionContentDTO.class);
-//                            List<QuestionContentDTO> list = new ArrayList<>();
-//                            list.add(dto);
-//                            aiManager.ensureScoreQuestionHasCorrectAnswer(app, list);
-//                            sseEmitter.send(JSONUtil.toJsonStr(list.get(0)));
-                            sseEmitter.send(JSONUtil.toJsonStr(dto));
+                            List<QuestionContentDTO> list = new ArrayList<>();
+                            list.add(dto);
+                            sseEmitter.send(JSONUtil.toJsonStr(list.get(0)));
+//                            sseEmitter.send(JSONUtil.toJsonStr(dto));
                             messageBuilder.setLength(0);
                         }
                     }
@@ -510,7 +510,8 @@ public class QuestionController {
         // AI 生成，SSE 流式返回
 //        Flowable<ModelData> modelDataFlowable = aiManager.doStreamRequest(GENERATE_QUESTION_SYSTEM_MESSAGE, userMessage, null);
         String systemMessage = getGenerateQuestionSystemMessage(app.getAppType());
-        Flowable<ModelData> modelDataFlowable = aiManager.doStreamRequest(systemMessage, userMessage, null);
+//        Flowable<ModelData> modelDataFlowable = aiManager.doStreamRequest(systemMessage, userMessage, null);
+        Flowable<ModelData> modelDataFlowable = aiManager.doStreamStableRequest(systemMessage, userMessage);
         // 左括号计数器，除了默认值外，当回归为 0 时，表示左括号等于右括号，可以截取
         AtomicInteger counter = new AtomicInteger(0);
         // 拼接完整题目

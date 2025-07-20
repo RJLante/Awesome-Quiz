@@ -273,6 +273,16 @@ public class AiManager {
     public String doSyncStableRequest(String systemMessage, String userMessage)  {
         return doRequest(systemMessage, userMessage, Boolean.FALSE, STABLE_TEMPERATURE);
     }
+    /**
+     * 流式请求（稳定）
+     *
+     * @param systemMessage 系统提示词
+     * @param userMessage   用户消息
+     * @return Flowable 流式响应
+     */
+    public Flowable<ModelData> doStreamStableRequest(String systemMessage, String userMessage) {
+        return doStreamRequest(systemMessage, userMessage, STABLE_TEMPERATURE);
+    }
 
     /**
      * 同步请求（不稳定）
