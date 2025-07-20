@@ -35,7 +35,8 @@ export const useAuthStore = defineStore("auth", {
         const { data } = await registerUsingPost(payload);
         if (data.code === 0) {
           // @ts-ignore
-          this.token = data.data!.token;
+          // this.token = data.data!.token;
+          this.token = stripBearer(data.data!.token);
           // @ts-ignore
           this.userInfo = data.data!.userInfo;
           localStorage.setItem("token", this.token);
