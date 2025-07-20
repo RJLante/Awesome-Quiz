@@ -327,18 +327,27 @@ public class QuestionController {
         String format;
         if (appType == AppTypeEnum.SCORE.getValue()) {
             format = "[{\\\"options\\\":[{\\\"value\\\":\\\"选项内容\\\",\\\"score\\\":0,\\\"key\\\":\\\"A\\\"}],\\\"title\\\":\\\"题目标题\\\"}]";
+            base += "2. 严格按照下面的 json 格式输出题目和选项\n" +
+                    "```\n" +
+                    format + "\n" +
+                    "```\n" +
+                    "title 是题目，options 是选项，每个选项的 key 按照英文字母序（比如 A、B、C、D）以此类推，value 是选项内容\n" +
+                    "3. 每道题必须只有一个正确答案，正确答案的score为1，其余为0，正确答案的选项位置要随机\n" +
+                    "4. 检查题目是否包含序号，若包含序号则去除序号\n" +
+                    "5. 返回的题目列表格式必须为 JSON 数组\n";
+            return base;
         } else {
             format = "[{\\\"options\\\":[{\\\"value\\\":\\\"选项内容\\\",\\\"result\\\":\\\"属性\\\",\\\"key\\\":\\\"A\\\"}],\\\"title\\\":\\\"题目标题\\\"}]";
+            base += "2. 严格按照下面的 json 格式输出题目和选项\n" +
+                    "```\n" +
+                    format + "\n" +
+                    "```\n" +
+                    "title 是题目，options 是选项，每个选项的 key 按照英文字母序（比如 A、B、C、D）以此类推，value 是选项内容\n" +
+                    "3. 每个选项必须只有一个对应的结果属性，结果属性使用大写英文字母表示\n" +
+                    "4. 检查题目是否包含序号，若包含序号则去除序号\n" +
+                    "5. 返回的题目列表格式必须为 JSON 数组\n";
+            return base;
         }
-
-        base += "2. 严格按照下面的 json 格式输出题目和选项\n" +
-                "```\n" +
-                format + "\n" +
-                "```\n" +
-                "title 是题目，options 是选项，每个选项的 key 按照英文字母序（比如 A、B、C、D）以此类推，value 是选项内容\n" +
-                "3. 检查题目是否包含序号，若包含序号则去除序号\n" +
-                "4. 返回的题目列表格式必须为 JSON 数组\n";
-        return base;
     }
 
 
@@ -385,31 +394,6 @@ public class QuestionController {
         int optionNumber = aiGenerateQuestionRequest.getOptionNumber();
         App app = appService.getById(appId);
         ThrowUtils.throwIf(app == null, ErrorCode.NOT_FOUND_ERROR);
-//        // 封装 Prompt
-//        String userMessage = aiManager.getGenerateQuestionUserMessage(app, questionNumber, optionNumber);
-//        // AI 生成
-////        String result = aiManager.doSyncStableRequest(GENERATE_QUESTION_SYSTEM_MESSAGE, userMessage);
-//        String systemMessage = getGenerateQuestionSystemMessage(app.getAppType());
-//        String result = aiManager.doSyncStableRequest(systemMessage, userMessage);
-//
-//        // 1. 将AI返回的完整字符串解析为JSON对象
-//        JSONObject resultObj = JSONUtil.parseObj(result);
-//
-//        // 2. 安全地提取"message.content"字段的字符串
-//        // 使用 getByPath 可以优雅地处理嵌套路径，避免空指针
-//        String content = resultObj.getByPath("message.content", String.class);
-//
-//        ThrowUtils.throwIf(StrUtil.isBlank(content), ErrorCode.SYSTEM_ERROR, "AI生成内容为空");
-//
-//        // 3. 清理content字符串，移除Markdown代码块标记和首尾空白
-//        int start = content.indexOf("[");
-//        int end = content.lastIndexOf("]");
-//        if (start == -1 || end == -1) {
-//            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "AI生成内容格式错误，未找到有效的JSON数组");
-//        }
-//        String json = content.substring(start, end + 1);
-//        // 4. 将清理后的字符串解析为List
-//        List<QuestionContentDTO> questionContentDTOList = JSONUtil.toList(json, QuestionContentDTO.class);
         List<QuestionContentDTO> questionContentDTOList =
                 aiManager.generateQuestionList(app, questionNumber, optionNumber);
         return ResultUtils.success(questionContentDTOList);

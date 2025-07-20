@@ -62,7 +62,11 @@
               删除题目
             </a-button>
           </a-space>
-          <a-form-item field="posts.post1" :label="`题目 ${index + 1} 标题`">
+          <a-form-item
+            field="posts.post1"
+            :label="`题目 ${index + 1} 标题`"
+            style="width: 800px"
+          >
             <a-input v-model="question.title" placeholder="请输入标题" />
           </a-form-item>
           <!--  题目选项 -->
@@ -81,6 +85,7 @@
             :label="`选项 ${optionIndex + 1}`"
             :content-flex="false"
             :merge-props="false"
+            style="width: 600px"
           >
             <a-form-item label="选项 key">
               <a-input v-model="option.key" placeholder="请输入选项 key" />
@@ -88,10 +93,10 @@
             <a-form-item label="选项值">
               <a-input v-model="option.value" placeholder="请输入选项值" />
             </a-form-item>
-            <a-form-item label="选项结果">
+            <a-form-item v-if="app.appType === 1" label="选项结果">
               <a-input v-model="option.result" placeholder="请输入选项结果" />
             </a-form-item>
-            <a-form-item label="选项得分">
+            <a-form-item v-if="app.appType === 0" label="选项得分">
               <a-input-number
                 v-model="option.score"
                 placeholder="请输入选项得分"
@@ -134,10 +139,10 @@
 </template>
 
 <script setup lang="ts">
-import { defineProps, ref, watchEffect, withDefaults } from "vue";
+import { defineProps, ref, watch, watchEffect, withDefaults } from "vue";
 import API from "@/api";
 import { useRouter } from "vue-router";
-import { watch } from "vue";
+import { getAppVoByIdUsingGet } from "@/api/appController";
 import {
   addQuestionUsingPost,
   editQuestionUsingPost,
@@ -164,6 +169,9 @@ const props = withDefaults(defineProps<Props>(), {
 });
 
 const router = useRouter();
+
+// 当前应用信息
+const app = ref<API.AppVO>({});
 
 // 题目内容结构（理解为题目列表）
 const questionContent = ref<API.QuestionContentDTO[]>([]);
@@ -224,31 +232,15 @@ const deleteQuestionOption = (
 
 const oldQuestion = ref<API.QuestionVO>();
 
-/**
- * 加载数据
- */
-// const loadData = async () => {
-//   if (!props.appId) {
-//     return;
-//   }
-//   const res = await listQuestionVoByPageUsingPost({
-//     appId: props.appId as any,
-//     current: 1,
-//     pageSize: 1,
-//     sortField: "createTime",
-//     sortOrder: "descend",
-//   });
-//   if (res.data.code === 0 && res.data.data?.records) {
-//     oldQuestion.value = res.data.data?.records[0];
-//     if (oldQuestion.value) {
-//       questionContent.value = oldQuestion.value.questionContent ?? [];
-//     }
-//   } else {
-//     message.error("获取数据失败，" + res.data.message);
-//   }
-// };
 const loadData = async () => {
   if (!props.appId) return;
+  // 获取应用信息
+  const appRes = await getAppVoByIdUsingGet({ id: props.appId as any });
+  if (appRes.data.code === 0) {
+    app.value = appRes.data.data as any;
+  } else {
+    message.error("获取应用信息失败，" + appRes.data.message);
+  }
   // 多拉几条，确保能拿到全部“散装”记录
   const res = await listQuestionVoByPageUsingPost({
     appId: props.appId as any,

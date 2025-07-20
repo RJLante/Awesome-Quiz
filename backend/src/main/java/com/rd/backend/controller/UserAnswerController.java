@@ -102,8 +102,22 @@ public class UserAnswerController {
         try {
             UserAnswer userAnswerWithResult = scoringStrategyExecutor.doScore(choices, app);
             userAnswerWithResult.setId(newUserAnswerId);
-            userAnswerWithResult.setAppId(null);
+//            userAnswerWithResult.setAppId(null);
+            // 继续携带 appId 以保证分表路由正确
             userAnswerService.updateById(userAnswerWithResult);
+            // 更新得分结果，不修改分表键
+            userAnswerService.lambdaUpdate()
+                    .eq(UserAnswer::getId, newUserAnswerId)
+                    .eq(UserAnswer::getAppId, userAnswerWithResult.getAppId())
+                    .set(UserAnswer::getAppType, userAnswerWithResult.getAppType())
+                    .set(UserAnswer::getScoringStrategy, userAnswerWithResult.getScoringStrategy())
+                    .set(UserAnswer::getChoices, userAnswerWithResult.getChoices())
+                    .set(UserAnswer::getResultId, userAnswerWithResult.getResultId())
+                    .set(UserAnswer::getResultName, userAnswerWithResult.getResultName())
+                    .set(UserAnswer::getResultDesc, userAnswerWithResult.getResultDesc())
+                    .set(UserAnswer::getResultPicture, userAnswerWithResult.getResultPicture())
+                    .set(UserAnswer::getResultScore, userAnswerWithResult.getResultScore())
+                    .update();
         } catch (Exception e) {
             e.printStackTrace();
             throw new BusinessException(ErrorCode.OPERATION_ERROR, "评分错误");

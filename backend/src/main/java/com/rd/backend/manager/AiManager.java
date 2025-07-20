@@ -55,7 +55,7 @@ public class AiManager {
     /**
      * 根据应用类型生成系统提示词
      */
-    public String getGenerateQuestionSystemMessage(int appType) {
+    private String getGenerateQuestionSystemMessage(int appType) {
         String base = "你是一位严谨的出题专家，我会给你如下信息：\n" +
                 "```\n" +
                 "应用名称，\n" +
@@ -82,16 +82,16 @@ public class AiManager {
             return base;
         } else {
             format = "[{\\\"options\\\":[{\\\"value\\\":\\\"选项内容\\\",\\\"result\\\":\\\"属性\\\",\\\"key\\\":\\\"A\\\"}],\\\"title\\\":\\\"题目标题\\\"}]";
+            base += "2. 严格按照下面的 json 格式输出题目和选项\n" +
+                    "```\n" +
+                    format + "\n" +
+                    "```\n" +
+                    "title 是题目，options 是选项，每个选项的 key 按照英文字母序（比如 A、B、C、D）以此类推，value 是选项内容\n" +
+                    "3. 每个选项必须只有一个对应的结果属性，结果属性使用大写英文字母表示\n" +
+                    "4. 检查题目是否包含序号，若包含序号则去除序号\n" +
+                    "5. 返回的题目列表格式必须为 JSON 数组\n";
+            return base;
         }
-
-        base += "2. 严格按照下面的 json 格式输出题目和选项\n" +
-                "```\n" +
-                format + "\n" +
-                "```\n" +
-                "title 是题目，options 是选项，每个选项的 key 按照英文字母序（比如 A、B、C、D）以此类推，value 是选项内容\n" +
-                "3. 检查题目是否包含序号，若包含序号则去除序号\n" +
-                "4. 返回的题目列表格式必须为 JSON 数组\n";
-        return base;
     }
 
 
