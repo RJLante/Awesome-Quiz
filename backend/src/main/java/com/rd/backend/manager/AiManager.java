@@ -259,31 +259,10 @@ public class AiManager {
         String json = content.substring(start, end + 1);
 //        return JSONUtil.toList(json, QuestionContentDTO.class);
         List<QuestionContentDTO> list = JSONUtil.toList(json, QuestionContentDTO.class);
-        ensureScoreQuestionHasCorrectAnswer(app, list);
         return list;
     }
 
-    /**
-     * Ensure score type questions contain exactly one correct option.
-     */
-    public void ensureScoreQuestionHasCorrectAnswer(App app, List<QuestionContentDTO> list) {
-        if (app == null || app.getAppType() != AppTypeEnum.SCORE.getValue() || CollectionUtils.isEmpty(list)) {
-            return;
-        }
-        for (QuestionContentDTO item : list) {
-            List<QuestionContentDTO.Option> options = item.getOptions();
-            if (CollectionUtils.isEmpty(options)) {
-                continue;
-            }
-            // 设置所有答案得分为0
-            for (QuestionContentDTO.Option option : options) {
-                option.setScore(0);
-            }
-            // 随机设置一个正确答案
-            int correctIndex = ThreadLocalRandom.current().nextInt(options.size());
-            options.get(correctIndex).setScore(1);
-        }
-    }
+
 
     /**
      * 同步请求（稳定）

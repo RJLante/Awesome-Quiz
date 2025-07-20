@@ -474,10 +474,11 @@ public class QuestionController {
                             // 重置，准备拼接下一道题
                             String questionJson = messageBuilder.toString();
                             QuestionContentDTO dto = JSONUtil.toBean(questionJson, QuestionContentDTO.class);
-                            List<QuestionContentDTO> list = new ArrayList<>();
-                            list.add(dto);
-                            aiManager.ensureScoreQuestionHasCorrectAnswer(app, list);
-                            sseEmitter.send(JSONUtil.toJsonStr(list.get(0)));
+//                            List<QuestionContentDTO> list = new ArrayList<>();
+//                            list.add(dto);
+//                            aiManager.ensureScoreQuestionHasCorrectAnswer(app, list);
+//                            sseEmitter.send(JSONUtil.toJsonStr(list.get(0)));
+                            sseEmitter.send(JSONUtil.toJsonStr(dto));
                             messageBuilder.setLength(0);
                         }
                     }
