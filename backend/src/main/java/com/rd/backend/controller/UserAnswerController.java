@@ -101,10 +101,10 @@ public class UserAnswerController {
 
         try {
             UserAnswer userAnswerWithResult = scoringStrategyExecutor.doScore(choices, app);
-            userAnswerWithResult.setId(newUserAnswerId);
+//            userAnswerWithResult.setId(newUserAnswerId);
 //            userAnswerWithResult.setAppId(null);
             // 继续携带 appId 以保证分表路由正确
-            userAnswerService.updateById(userAnswerWithResult);
+//            userAnswerService.updateById(userAnswerWithResult);
             // 更新得分结果，不修改分表键
             userAnswerService.lambdaUpdate()
                     .eq(UserAnswer::getId, newUserAnswerId)
